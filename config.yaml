@@ -1,0 +1,13 @@
+playlists:
+  - name: Endless Summer Vacation
+    id: PL0EgyyX8wk73FNulyHBPTZ4FuX9XxSz-3
+  - name: Plastic Hearts
+    id: PLfiMjLyNWxeb8ol0xpwTq54t4EwZNUS9_
+
+storage:
+  metadata:
+    ai_catalog_id: 663e9cbd910b4edf669114bb
+    name: Miley metadata
+  statistics:
+    ai_catalog_id: 663e9ceadd323c005c50cea4
+    name: Miley statistics

@@ -78,7 +78,7 @@ def compile_data(videos: List[str], api_key: str, current_hour: dt.datetime) -> 
         video_metadata[id]["madeForKids"] = items["status"]["madeForKids"]
 
         video_statistics.append(video_stats)
-        logger.info(f"""Pulled Youtube Metadata on "{items['snippet']['title']}" """)
+        logger.info(f"""Pulled Youtube Metadata on {items['snippet']['title']}""")
 
     stats_data = {"as_of_date": current_hour, "data": video_statistics}
     return stats_data, video_metadata

@@ -6,3 +6,4 @@ playlists:
 storage:
   metadata: Miley metadata
   statistics: Miley statistics
+  model_dataset: Miley modeling data

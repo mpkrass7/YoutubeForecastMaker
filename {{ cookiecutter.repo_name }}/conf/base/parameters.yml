@@ -9,4 +9,5 @@
 
 get_data_pipeline:
   playlist_id: PLSdoVPM5WnndSQEXRz704yQkKwx76GvPV
+  playlist_id2: ""
   dataset_name: {{ cookiecutter.project_name }} Training Data

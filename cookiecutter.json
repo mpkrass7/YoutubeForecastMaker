@@ -1,0 +1,14 @@
+{
+    "project_name": null,
+    "analytics_trace_id": null,
+    "_comment_analytics_trace_id": "A non-null value for analytics_trace_id enables DataRobot to collect analytics for your recipe",
+    "repo_name": "{{ cookiecutter.project_name.strip().replace(' ', '-').replace('_', '-').lower() }}",
+    "python_package": "{{ cookiecutter.project_name.strip().replace(' ', '_').replace('-', '_').lower() }}",
+    "kedro_version": "{{ cookiecutter.kedro_version }}",
+    "datarobotx_idp_version": "v0.2.1",
+    "tools": "{{ cookiecutter.tools }}",
+    "example_pipeline": "{{ cookiecutter.example_pipeline }}",
+    "_copy_without_render": [
+        "*.jinja"
+    ]
+}

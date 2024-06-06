@@ -1,0 +1,12 @@
+# This is a registry of literal parameters that can be used as node inputs.
+#
+# When defining node inputs in the pipeline, you can reference keys from this yaml to indicate
+# that the pipeline should map the literal defined here to the node's input at runtime.
+#
+# Kedro precedent defines that the keys in this yaml can be referenced as below when defining
+# node inputs:
+# e.g. "params:my_key_1", "params:my_key_2.my_sub_key_2"
+
+get_data_pipeline:
+  playlist_id: PLSdoVPM5WnndSQEXRz704yQkKwx76GvPV
+  dataset_name: {{ cookiecutter.project_name }} Training Data

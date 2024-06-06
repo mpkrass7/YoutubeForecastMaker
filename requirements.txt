@@ -1,6 +1,0 @@
-datarobot~=3.4.0
-logzero
-pandas
-pyyaml
-requests
-ruff

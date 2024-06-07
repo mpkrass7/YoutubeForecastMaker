@@ -8,5 +8,9 @@
 # https://docs.kedro.org/en/stable/data/data_catalog.html
 
 get_data_pipeline.time_series_data:
-  type: pandas.CSVDataset
-  filepath: data/outputs/time_series_data.csv
+    type: pandas.CSVDataset
+    filepath: data/outputs/time_series_data.csv
+    
+get_data_pipeline.metadata:
+    type: pandas.CSVDataset
+    filepath: data/outputs/metadata.csv

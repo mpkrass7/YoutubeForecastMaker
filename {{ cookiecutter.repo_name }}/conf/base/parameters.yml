@@ -8,5 +8,7 @@
 # e.g. "params:my_key_1", "params:my_key_2.my_sub_key_2"
 
 get_data_pipeline:
-  playlist_id: PLSdoVPM5WnndSQEXRz704yQkKwx76GvPV
+  playlist_id1: PLSdoVPM5WnndLX6Ngmb8wktMF61dJirKl
+  playlist_id2: PLFzMBB6IQkE4_BZDBRPtxNEafeGdDFDqV
   dataset_name: {{ cookiecutter.project_name }} Training Data
+  metadataset_name: {{ cookiecutter.project_name }} Meta Data

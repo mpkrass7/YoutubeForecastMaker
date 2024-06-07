@@ -47,34 +47,28 @@ def compile_metadata(videos: List[str], api_key: str) -> pd.DataFrame:
     """
     Run the Youtube API on a list of videos to extract view statistics and metadata
     """
-    # import logger
-    from .nodes import pull_video_data
-    from datetime import datetime
-    current_time = datetime.now()
+    from logzero import logger
 
-    video_statistics, video_metadata = [], {}
+    video_metadata = []
     for id in videos:
         items = _pull_video_data(id, api_key)["items"][0]
-        video_stats = items["statistics"]
-        video_stats["as_of_datetime"] = current_time
-        video_stats["video_id"] = id
 
-        video_metadata[id] = {}
-        video_metadata[id]["publishedAt"] = items["snippet"]["publishedAt"]
-        video_metadata[id]["channelId"] = items["snippet"]["channelId"]
-        video_metadata[id]["title"] = items["snippet"]["title"]
-        video_metadata[id]["description"] = items["snippet"]["description"]
-        video_metadata[id]["categoryId"] = items["snippet"]["categoryId"]
-        video_metadata[id]["channelTitle"] = items["snippet"]["channelTitle"]
-        video_metadata[id]["tags"] = ", ".join(items["snippet"].get("tags", []))
-        video_metadata[id]["duration"] = items["contentDetails"]["duration"]
-        video_metadata[id]["madeForKids"] = items["status"]["madeForKids"]
+        video_metadata.append({
+            "videoId": id,
+            "publishedAt": items["snippet"]["publishedAt"],
+            "channelId": items["snippet"]["channelId"],
+            "title": items["snippet"]["title"],
+            "description": items["snippet"]["description"],
+            "categoryId": items["snippet"]["categoryId"],
+            "channelTitle": items["snippet"]["channelTitle"],
+            "tags": ", ".join(items["snippet"].get("tags", [])),
+            "duration": items["contentDetails"]["duration"],
+            "madeForKids": items["status"]["madeForKids"]
+        })
 
-        video_statistics.append(video_stats)
-        # logger.info(f"""Pulled Youtube Metadata on {items['snippet']['title']}""")
-    
-    return video_metadata
-
+        logger.info(f"""Pulled Youtube Metadata on {items['snippet']['title']}""")
+        
+    return pd.DataFrame(video_metadata)
 def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
     """
     Run the Youtube API on a list of videos to extract view statistics and metadata
@@ -129,3 +123,11 @@ def update_or_create_dataset(
             data_frame=data_frame, use_cases=use_cases
         )
         dataset.modify(name=f"{name} [{dataset_token}]")
+
+def combine_video_ids(
+        list1: List[str],
+        list2: List[str]
+) -> List[str]:
+    """
+    """
+    return list1 + list2

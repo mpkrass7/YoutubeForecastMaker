@@ -102,6 +102,17 @@ def _check_if_dataset_exists(name: str) -> Union[str, None]:
     datasets = dr.Dataset.list()
     return next((dataset.id for dataset in datasets if dataset.name == name), None)
 
+def _write_new_dataset_to_catalog(df: pd.DataFrame, dataset_name, client) -> str:
+    """
+    Write the metadata and stats dataframes to the AI Catalog
+    """
+    from logzero import logger
+
+    dr_url = client.endpoint.split("/api")[0]
+    catalog_id = dr.Dataset.create_from_in_memory_data(df, fname=dataset_name).id
+    logger.info(f"Dataset {dataset_name} created: {dr_url + '/' + catalog_id}")
+    return catalog_id
+
 # TODO: update this (see notes from Marshall huddle) such that it doesn't upload new version of dataset
 #   
 def update_or_create_dataset(
@@ -114,7 +125,8 @@ def update_or_create_dataset(
 ) -> str:
     """
     """
-    dr.Client(token=token, endpoint=endpoint)
+    from datetime import timedelta
+    CLIENT = dr.Client(token=token, endpoint=endpoint)
     dataset_token = get_hash(name, data_frame, use_cases, **kwargs)
     dataset_id = _check_if_dataset_exists(name)
 
@@ -123,6 +135,18 @@ def update_or_create_dataset(
             data_frame=data_frame, use_cases=use_cases
         )
         dataset.modify(name=f"{name} [{dataset_token}]")
+    else:
+        current_data = dr.Dataset.get(dataset_id).get_as_dataframe()
+        date_column = pd.to_datetime(current_data["as_of_datetime"])
+        latest_time_pulled = date_column.max()
+        time_pulled_this_df = data_frame["as_of_datetime"].max()
+        if abs(latest_time_pulled - time_pulled_this_df) <= timedelta(hours=2):
+            return
+        else:
+            # update dataset if time is greater than 2 hours
+            updated_df = pd.concat([current_data, data_frame])
+            _write_new_dataset_to_catalog(updated_df, dataset_name=name, client=CLIENT)
+
 
 def combine_video_ids(
         list1: List[str],

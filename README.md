@@ -11,8 +11,39 @@ TODO: Describe your recipe here. We recommend including a gif or screenshot of t
 There is no need to modify the directions in the next section.
 
 ## Getting started
-1. Ensure you have the following DataRobot feature flags turned on:
-   - **INSERT REQUIRED FLAGS HERE**
+1. Create a Youtube API key
+   1. Log into the [Google Developers Console](https://console.cloud.google.com/apis/dashboard)
+   2. Click "Create new project"
+         - Add a project name, select your organization (optional)
+   3. On the new project dashboard, click "Explore & Enable APIs"
+   4. In the library, navigate YouTube Data API v3 under YouTube APIs.
+   5. Enable the API
+   6. Create a credential
+      - In the window, select YouTube Data API v3 for the first blank space, Web server (e.g. node js. Tomcat) for the second, and check the Public data box on the third prompt.
+      - Click on the blue button titled "What credentials do I need?" After that, your API key will automatically load.
+      - Click "Done."
+   7. A screen will appear with the API key. Save this to your clipboard.
+
+2. Create a Use Case on [DataRobot](app.datarobot.com)
+   - Click on "DataRobot NextGen"
+   - Select Workbench
+   - In the top right, click "Create New Use Case"
+
+3. Create a new Code Space
+   - Click the blue "Add" button
+
+4. Download the [YoutubeForecastMaker Repo](https://github.com/mpkrass7/YoutubeForecastMaker)
+
+5. Upload the files to your new Codespace
+
+6. Create a notebook in the storage directory of your new Codespace with the following cells
+   - !pip install uv
+   - !uv pip install kedro
+   - !kedro new -n give_your_project_a_name --starter=https://github.com/mpkrass7/YoutubeForecastMaker.git --checkout master
+
+7. Run the notebook! A new folder should appear with the project name you gave after the "-n" flag
+
+8. Go into this folder, 
 
 2. Create a [new][virtualenv-docs] python virtual environment with python >= 3.9.
 

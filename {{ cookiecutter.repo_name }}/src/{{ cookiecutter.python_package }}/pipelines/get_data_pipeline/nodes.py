@@ -69,6 +69,7 @@ def compile_metadata(videos: List[str], api_key: str) -> pd.DataFrame:
         logger.info(f"""Pulled Youtube Metadata on {items['snippet']['title']}""")
         
     return pd.DataFrame(video_metadata)
+
 def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
     """
     Run the Youtube API on a list of videos to extract view statistics and metadata
@@ -76,7 +77,10 @@ def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
     # import logger
     # from .nodes import _pull_video_data
     from datetime import datetime
-    current_time = datetime.now()
+    import pytz
+
+    timezone = pytz.timezone('America/New_York')
+    current_time = datetime.now(tz=timezone)
 
     video_statistics = []
     for id in videos:
@@ -134,18 +138,22 @@ def update_or_create_dataset(
         dataset: Dataset = Dataset.create_from_in_memory_data(
             data_frame=data_frame, use_cases=use_cases
         )
-        dataset.modify(name=f"{name} [{dataset_token}]")
+        dataset.modify(name=f"{name}")
     else:
         current_data = dr.Dataset.get(dataset_id).get_as_dataframe()
         date_column = pd.to_datetime(current_data["as_of_datetime"])
         latest_time_pulled = date_column.max()
-        time_pulled_this_df = data_frame["as_of_datetime"].max()
-        if abs(latest_time_pulled - time_pulled_this_df) <= timedelta(hours=2):
+        time_pulled_this_df = pd.to_datetime(data_frame["as_of_datetime"]).max()
+        print(time_pulled_this_df, "current time pulled")
+        print(abs(latest_time_pulled - time_pulled_this_df), "\n\n")
+        if abs(latest_time_pulled - time_pulled_this_df) <= timedelta(hours=2.5):
+            print("returning\n\n")
             return
         else:
             # update dataset if time is greater than 2 hours
-            updated_df = pd.concat([current_data, data_frame])
-            _write_new_dataset_to_catalog(updated_df, dataset_name=name, client=CLIENT)
+            updated_df = pd.concat([current_data, data_frame]).reset_index(drop=True)
+            dr.Dataset.create_version_from_in_memory_data(dataset_id, updated_df)
+            # _write_new_dataset_to_catalog(updated_df, dataset_name=name, client=CLIENT)
 
 
 def combine_video_ids(

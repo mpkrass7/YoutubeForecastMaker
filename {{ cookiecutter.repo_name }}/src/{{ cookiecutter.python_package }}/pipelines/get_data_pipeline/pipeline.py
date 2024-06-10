@@ -20,31 +20,13 @@ def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
         # TODO: Let's assume you already have a usecase
         node(
-            name="Get_playlist1",
+            name="Get_playlists",
             func=get_videos,
             inputs={
-                "playlist_id": "params:playlist_id1",
+                "playlist_ids": "params:playlist_ids",
                 "api_key": "params:credentials.youtube_api_key"
             },
-            outputs="video_id_list1",
-        ),
-        node(
-            name="Get_playlist2",
-            func=get_videos,
-            inputs={
-                "playlist_id": "params:playlist_id2",
-                "api_key": "params:credentials.youtube_api_key"
-            },
-            outputs="video_id_list2",
-        ),
-        node(
-            name="Combine_playlists",
-            func=combine_video_ids,
-            inputs={
-                "list1": "video_id_list1",
-                "list2": "video_id_list2"
-            },
-            outputs="combined_videos"
+            outputs="combined_videos",
         ),
         node(
             name="Pull_Data",

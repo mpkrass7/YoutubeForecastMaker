@@ -16,7 +16,7 @@ from datarobot.models.use_cases.utils import UseCaseLike
 from datarobotx.idp.common.hashing import get_hash
 
 # TODO: How in-depth do these docstrings need to be?
-def get_videos(playlist_id: str, api_key: str) -> List[str]:
+def get_videos(playlist_ids: List[str], api_key: str) -> List[str]:
     """
     Pull all the video ids from a playlist
     """
@@ -24,8 +24,11 @@ def get_videos(playlist_id: str, api_key: str) -> List[str]:
     import requests
 
     request_header = "https://www.googleapis.com/youtube/v3/playlistItems?playlistId={}&key={}&maxResults=50&part=contentDetails"
-    data = requests.get(request_header.format(playlist_id, api_key)).json()
-    return [i['contentDetails']['videoId'] for i in data['items']]
+    data = []
+    for playlist_id in playlist_ids:
+        datum = requests.get(request_header.format(playlist_id, api_key)).json()
+        data += [i['contentDetails']['videoId'] for i in datum['items']]
+    return data
 
 def _pull_video_data(video_id: str, api_key: str) -> Dict[str, Any]:
     """

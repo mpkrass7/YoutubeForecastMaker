@@ -40,10 +40,19 @@ There is no need to modify the directions in the next section.
    - !pip install uv
    - !uv pip install kedro
    - !kedro new -n give_your_project_a_name --starter=https://github.com/mpkrass7/YoutubeForecastMaker.git --checkout master
+   - !uv pip install -r your_project_name/requirements.txt
 
 7. Run the notebook! A new folder should appear with the project name you gave after the "-n" flag
 
-8. Go into this folder, 
+8. Go into this folder, then conf/local/credentials.yml
+   - Fill in your datarobot credentials, your use case id (which is in your search bar after https://app.datarobot.com/usecases/), 
+      and your youtube-api-key
+
+9. Navigate to conf/base/parameters.yml
+   - Add in the youtube playlist IDs that you would like to pull data from.
+
+10. Lastly, to schedule the data to pull, you'll want to navigate to the notebooks directory in your project.
+   - Schedule the notebook to run every hour.
 
 2. Create a [new][virtualenv-docs] python virtual environment with python >= 3.9.
 

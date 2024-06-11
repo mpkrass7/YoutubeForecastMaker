@@ -37,10 +37,18 @@ There is no need to modify the directions in the next section.
 5. Upload the files to your new Codespace
 
 6. Create a notebook in the storage directory of your new Codespace with the following cells
-   - !pip install uv
-   - !uv pip install kedro
-   - !kedro new -n give_your_project_a_name --starter=https://github.com/mpkrass7/YoutubeForecastMaker.git --checkout master
-   - !uv pip install -r your_project_name/requirements.txt
+   ```bash
+   !pip install uv
+   ```
+   ```bash
+   !uv pip install kedro
+   ```
+   ```bash
+   !kedro new -n $YOUR_PROJECT_NAME$ --starter=https://github.com/mpkrass7/YoutubeForecastMaker.git --checkout master
+   ```
+   ```bash
+   !uv pip install -r $YOUR_PROJECT_NAME$/requirements.txt
+   ```
 
 7. Run the notebook! A new folder should appear with the project name you gave after the "-n" flag
 

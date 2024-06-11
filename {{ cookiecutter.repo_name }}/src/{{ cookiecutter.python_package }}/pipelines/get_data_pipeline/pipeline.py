@@ -75,11 +75,11 @@ def create_pipeline(**kwargs) -> Pipeline:
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
-                "name": "params:dataset_name",
+                "name": "params:timeseries_dataset_name",
                 "data_frame": "time_series_data",
                 "use_cases": "use_case_id",
             },
-            outputs=None
+            outputs="timeseries_dataset_name"
         ),
         # TODO: how do I save the metadataset name?
         node(
@@ -92,15 +92,15 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "name": "params:metadataset_name",
                 "data_frame": "metadata",
             },
-            outputs=None,
+            outputs="metadataset_id",
         ),
         node(
             name="preprocess_data",
             func=create_modeling_dataset,
             inputs={
                 "combined_dataset_name": "params:combined_dataset_name",
-                "metadataset_name": "params:metadataset_name",
-                "timeseries_dataset_name": "params:timeseries_dataset_name",
+                "metadataset_id": "metadataset_id",
+                "timeseries_dataset_name": "timeseries_dataset_name",
                 "use_cases": "use_case_id",
             },
             outputs=None,

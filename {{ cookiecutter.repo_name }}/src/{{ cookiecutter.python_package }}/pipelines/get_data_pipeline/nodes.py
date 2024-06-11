@@ -153,12 +153,14 @@ def update_or_create_dataset(
         print(abs(latest_time_pulled - time_pulled_this_df), "\n\n")
         if abs(latest_time_pulled - time_pulled_this_df) <= timedelta(hours=0.5):
             print("returning\n\n")
-            return
+            return name
         else:
             # update dataset if time is greater than 2 hours
             updated_df = pd.concat([current_data, data_frame]).reset_index(drop=True)
             dr.Dataset.create_version_from_in_memory_data(dataset_id, updated_df)
             # _write_new_dataset_to_catalog(updated_df, dataset_name=name, client=CLIENT)
+    
+    return name
 
 
 def combine_video_ids(
@@ -190,7 +192,7 @@ def _find_existing_dataset(
 
 
 def create_modeling_dataset(combined_dataset_name: str,
-                                 metadataset_name: str, 
+                                 metadataset_id: str, 
                                  timeseries_dataset_name: str,
                                  use_cases: Optional[UseCaseLike] = None) -> str:
     """Prepare a dataset for modeling in DataRobot.
@@ -208,8 +210,8 @@ def create_modeling_dataset(combined_dataset_name: str,
     """#TODO: Should it return a dr.Dataset?
     # Join the metadata and timeseries data on the Video ID
     # TODO: can I join datasets as dr.Datasets?
-    metadata_id = _find_existing_dataset(timeout_secs=30, dataset_name=metadataset_name, use_cases=use_cases)
-    metadata_df = dr.Dataset.get(metadata_id).get_as_dataframe()
+    # TOOD: Should be uniform in terms of what I pass in for each dataframe.
+    metadata_df = dr.Dataset.get(metadataset_id).get_as_dataframe()
 
     timeseries_id = _find_existing_dataset(timeout_secs=30, dataset_name=timeseries_dataset_name, use_cases=use_cases)
     timeseries_df = dr.Dataset.get(timeseries_id).get_as_dataframe()
@@ -229,5 +231,3 @@ def create_modeling_dataset(combined_dataset_name: str,
         updated_df = pd.concat([current_data, new_data]).reset_index(drop=True)
         dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, updated_df)
     # dataset = dr.Dataset.create_from_in_memory_data(data_frame=data, use_cases=use_cases)
-
-    return dataset

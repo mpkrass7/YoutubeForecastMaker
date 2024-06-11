@@ -30,3 +30,13 @@ deploy_forecast.dataset_id:
 project_id:
   type: text.TextDataset
   filepath: data/outputs/project_id.txt
+
+# We store certain variables like these to ensure that certain nodes have run
+#  before other nodes in the pipeline.
+get_data_pipeline.metadataset_name:
+  type: text.TextDataset
+  filepath: data/outputs/metadataset_name.txt
+
+get_data_pipeline.timeseries_dataset_name:
+  type: text.TextDataset
+  filepath: data/outputs/timeseries_dataset_name.txt

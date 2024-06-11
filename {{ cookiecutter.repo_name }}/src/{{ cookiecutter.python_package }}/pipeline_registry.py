@@ -8,9 +8,9 @@
 """Project pipelines."""
 from typing import Dict
 
-from kedro.framework.project import find_pipelines
 from kedro.pipeline import Pipeline
-
+from .pipelines import get_data_pipeline as get_data_p
+from .pipelines import deploy_forecast as deploy
 
 def register_pipelines() -> Dict[str, Pipeline]:
     """Register the project's pipelines.
@@ -18,6 +18,11 @@ def register_pipelines() -> Dict[str, Pipeline]:
     Returns:
         A mapping from pipeline names to ``Pipeline`` objects.
     """
-    pipelines = find_pipelines()
-    pipelines["__default__"] = sum(pipelines.values())
-    return pipelines
+    # The default pipeline will deploy the forecast and the streamlit app
+    deploy_forecast = deploy.create_pipeline()
+    # The pull data pipeline will pull data from Youtube
+    pull_data = get_data_p.create_pipeline()
+    return {
+        "__default__": deploy_forecast, # TODO: add deploy streamlit
+        "pull_data": pull_data,
+    }

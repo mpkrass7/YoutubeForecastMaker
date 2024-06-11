@@ -7,18 +7,31 @@
 from kedro.pipeline import node, Pipeline
 from kedro.pipeline.modular_pipeline import pipeline
 from datarobotx.idp.datasets import get_or_create_dataset_from_df
+from datarobotx.idp.use_cases import get_or_create_use_case
+
 from .nodes import (
                 get_videos, 
                 compile_timeseries_data,
                 update_or_create_dataset,
-                combine_video_ids,
                 compile_metadata,
+                create_modeling_dataset,
                 )
 
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
         # TODO: Let's assume you already have a usecase
+        node(
+            name="make_datarobot_use_case",
+            func=get_or_create_use_case,
+            inputs={
+                "endpoint": "params:credentials.datarobot.endpoint",
+                "token": "params:credentials.datarobot.api_token",
+                "name": "params:use_case.name",
+                "description": "params:use_case.description",
+            },
+            outputs="use_case_id",
+        ),
         node(
             name="Get_playlists",
             func=get_videos,
@@ -64,19 +77,31 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "token": "params:credentials.datarobot.api_token",
                 "name": "params:dataset_name",
                 "data_frame": "time_series_data",
-                "use_cases": "params:credentials.datarobot.use_case_id",
+                "use_cases": "use_case_id",
             },
             outputs=None
         ),
+        # TODO: how do I save the metadataset name?
         node(
             name="update_metadata",
             func=get_or_create_dataset_from_df,
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
-                "use_cases": "params:credentials.datarobot.use_case_id",
+                "use_cases": "use_case_id",
                 "name": "params:metadataset_name",
                 "data_frame": "metadata",
+            },
+            outputs=None,
+        ),
+        node(
+            name="preprocess_data",
+            func=create_modeling_dataset,
+            inputs={
+                "combined_dataset_name": "params:combined_dataset_name",
+                "metadataset_name": "params:metadataset_name",
+                "timeseries_dataset_name": "params:timeseries_dataset_name",
+                "use_cases": "use_case_id",
             },
             outputs=None,
         ),
@@ -97,6 +122,5 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
             "params:credentials.youtube_api_key",
-            "params:credentials.datarobot.use_case_id",
         }
     )

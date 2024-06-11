@@ -8,8 +8,40 @@
 # e.g. "params:my_key_1", "params:my_key_2.my_sub_key_2"
 
 get_data_pipeline:
+  use_case:
+    name: {{ cookiecutter.project_name }} # TODO: write in README that usecase must be same name as project
+    description: Forecast likes for a Youtube Video
   playlist_ids:
     - PLSdoVPM5WnndLX6Ngmb8wktMF61dJirKl
     - PLFzMBB6IQkE4_BZDBRPtxNEafeGdDFDqV
-  dataset_name: {{ cookiecutter.project_name }} Training Data
+  timeseries_dataset_name: {{ cookiecutter.project_name }} Raw Time Series Data
   metadataset_name: {{ cookiecutter.project_name }} Meta Data
+  combined_dataset_name: {{ cookiecutter.project_name }} Modeling Data
+
+deploy_forecast:
+  use_case:
+    name: {{ cookiecutter.project_name }}
+    description: Forecast likes for a Youtube Video
+  dataset_name: {{ cookiecutter.project_name }} Modeling Data
+  project:
+    name: {{ cookiecutter.project_name }} Project 
+    analyze_and_model_config:
+      metric: RMSE
+      mode: quick
+      target: viewCount
+      worker_count: 12
+    datetime_partitioning_config:
+      datetime_partition_column: "as_of_datetime" #TODO: in the get_data pipeline, can I put a cookiecutter as the datetime_partition column?
+                                                # I'm worried that the user may have to change too many things at this stage.
+      multiseries_id_columns: [video_id]
+      use_time_series: True
+      forecast_window_start: 
+      forecast_window_end: 
+    advanced_options_config:
+      seed: 42
+  registered_model:
+    name: {{ cookiecutter.project_name }}
+  deployment:
+    label: {{ cookiecutter.project_name }}
+    description: A fantastically generated forecast from Kedro, hurray!
+    prediction_interval: 80

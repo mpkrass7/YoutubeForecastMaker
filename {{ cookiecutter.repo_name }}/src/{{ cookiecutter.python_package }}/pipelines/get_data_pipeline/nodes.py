@@ -14,6 +14,7 @@ import pandas as pd
 from datarobot import Dataset
 from datarobot.models.use_cases.utils import UseCaseLike
 from datarobotx.idp.common.hashing import get_hash
+import time
 
 # TODO: How in-depth do these docstrings need to be?
 def get_videos(playlist_ids: List[str], api_key: str) -> List[str]:
@@ -57,7 +58,7 @@ def compile_metadata(videos: List[str], api_key: str) -> pd.DataFrame:
         items = _pull_video_data(id, api_key)["items"][0]
 
         video_metadata.append({
-            "videoId": id,
+            "video_id": id,
             "publishedAt": items["snippet"]["publishedAt"],
             "channelId": items["snippet"]["channelId"],
             "title": items["snippet"]["title"],
@@ -80,11 +81,12 @@ def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
     # import logger
     # from .nodes import _pull_video_data
     from datetime import datetime
+    from logzero import logger
     import pytz
 
     timezone = pytz.timezone('America/New_York')
-    current_time = datetime.now(tz=timezone)
-
+    current_time = datetime.now(tz=timezone).strftime('%Y-%m-%d %H:%M')
+    
     video_statistics = []
     for id in videos:
         items = _pull_video_data(id, api_key)["items"][0]
@@ -93,7 +95,7 @@ def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
         video_stats["video_id"] = id
 
         video_statistics.append(video_stats)
-        # logger.info(f"""Pulled Youtube Time Series Data on {items['snippet']['title']}""")
+        logger.info(f"""Pulled Youtube Time Series Data on {items['snippet']['title']}""")
     stats_data = pd.DataFrame(video_statistics)
 
     return stats_data
@@ -149,7 +151,7 @@ def update_or_create_dataset(
         time_pulled_this_df = pd.to_datetime(data_frame["as_of_datetime"]).max()
         print(time_pulled_this_df, "current time pulled")
         print(abs(latest_time_pulled - time_pulled_this_df), "\n\n")
-        if abs(latest_time_pulled - time_pulled_this_df) <= timedelta(hours=2.5):
+        if abs(latest_time_pulled - time_pulled_this_df) <= timedelta(hours=0.5):
             print("returning\n\n")
             return
         else:
@@ -166,3 +168,66 @@ def combine_video_ids(
     """
     """
     return list1 + list2
+
+def _find_existing_dataset(
+    timeout_secs: int, dataset_name: str, use_cases: Optional[UseCaseLike] = None
+) -> str:
+    for dataset in Dataset.list(use_cases=use_cases):
+        if dataset_name in dataset.name:
+            waited_secs = 0
+            while True:
+                status = Dataset.get(dataset.id).processing_state
+                if status == "COMPLETED":
+                    return str(dataset.id)
+                elif status == "ERROR":
+                    break
+                elif waited_secs > timeout_secs:
+                    raise TimeoutError("Timed out waiting for dataset to process.")
+                time.sleep(3)
+                waited_secs += 3
+
+    raise KeyError("No matching dataset found")
+
+
+def create_modeling_dataset(combined_dataset_name: str,
+                                 metadataset_name: str, 
+                                 timeseries_dataset_name: str,
+                                 use_cases: Optional[UseCaseLike] = None) -> str:
+    """Prepare a dataset for modeling in DataRobot.
+    
+    Parameters
+    ----------
+    metadata : pd.DataFrame
+        The raw metadata dataset to combine with timeseries data for modeling
+    timeseries_data: pd.DataFrame
+        The raw timeseries dataset to combine with metadata for modeling
+    Returns
+    -------
+    str
+        ID of the dataset prepared for modeling in DataRobot
+    """#TODO: Should it return a dr.Dataset?
+    # Join the metadata and timeseries data on the Video ID
+    # TODO: can I join datasets as dr.Datasets?
+    metadata_id = _find_existing_dataset(timeout_secs=30, dataset_name=metadataset_name, use_cases=use_cases)
+    metadata_df = dr.Dataset.get(metadata_id).get_as_dataframe()
+
+    timeseries_id = _find_existing_dataset(timeout_secs=30, dataset_name=timeseries_dataset_name, use_cases=use_cases)
+    timeseries_df = dr.Dataset.get(timeseries_id).get_as_dataframe()
+
+    new_data = pd.merge(metadata_df, timeseries_df, on="video_id", how="inner")
+
+    combined_dataset_id = _check_if_dataset_exists(combined_dataset_name)
+
+    # TODO: Should this be idempotent? (use hash?)
+    if combined_dataset_id is None:
+        dataset: Dataset = Dataset.create_from_in_memory_data(
+            data_frame=new_data, use_cases=use_cases
+        )
+        dataset.modify(name=f"{combined_dataset_name}")
+    else:
+        current_data = dr.Dataset.get(combined_dataset_id).get_as_dataframe()
+        updated_df = pd.concat([current_data, new_data]).reset_index(drop=True)
+        dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, updated_df)
+    # dataset = dr.Dataset.create_from_in_memory_data(data_frame=data, use_cases=use_cases)
+
+    return dataset

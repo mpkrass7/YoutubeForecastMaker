@@ -20,15 +20,13 @@ from .nodes import (
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
-        # TODO: Let's assume you already have a usecase
         node(
-            name="make_datarobot_use_case",
+            name="make_or_get_datarobot_use_case",
             func=get_or_create_use_case,
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
                 "name": "params:use_case.name",
-                "description": "params:use_case.description",
             },
             outputs="use_case_id",
         ),
@@ -66,7 +64,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             #       Also, can there be more than 1 output? Can it 
             #       represent a tuple?
             outputs="metadata",
-            #TODO: What are the tags for?
             tags=["checkpoint"],
         ),
         node(
@@ -79,7 +76,8 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "data_frame": "time_series_data",
                 "use_cases": "use_case_id",
             },
-            outputs="timeseries_dataset_name"
+            outputs="timeseries_dataset_name" #TODO: does putting this as output actually ensure it gets
+                                              # run before "preprocess_data" node?
         ),
         # TODO: how do I save the metadataset name?
         node(

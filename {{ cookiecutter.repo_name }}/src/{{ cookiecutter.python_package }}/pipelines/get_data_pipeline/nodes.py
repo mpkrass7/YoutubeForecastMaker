@@ -21,7 +21,6 @@ def get_videos(playlist_ids: List[str], api_key: str) -> List[str]:
     """
     Pull all the video ids from a playlist
     """
-
     import requests
 
     request_header = "https://www.googleapis.com/youtube/v3/playlistItems?playlistId={}&key={}&maxResults=50&part=contentDetails"
@@ -39,14 +38,10 @@ def _pull_video_data(video_id: str, api_key: str) -> Dict[str, Any]:
     import requests #TODO: should I do "from requests import get" instead?
 
     request_header = "https://www.googleapis.com/youtube/v3/videos?id={}&key={}&fields=items(id,snippet(publishedAt,channelId,title,description,categoryId,channelTitle, tags),statistics(viewCount,likeCount,commentCount),contentDetails,status)&part=snippet,statistics,contentDetails,Status"
-    
     data = requests.get(request_header.format(video_id, api_key)).json()
 
     return data
 
-# TODO: Making a change to this... it's too fragmented right now.
-#   I think it makes sense to download and export to df in 1 function?
-# TODO: bake into product?
 def compile_metadata(videos: List[str], api_key: str) -> pd.DataFrame:
     """
     Run the Youtube API on a list of videos to extract view statistics and metadata
@@ -78,27 +73,27 @@ def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
     """
     Run the Youtube API on a list of videos to extract view statistics and metadata
     """
-    # import logger
-    # from .nodes import _pull_video_data
     from datetime import datetime
     from logzero import logger
     import pytz
 
+    # It's important to ensure consistency by adding in a timezone.
     timezone = pytz.timezone('America/New_York')
     current_time = datetime.now(tz=timezone).strftime('%Y-%m-%d %H:%M')
     
     video_statistics = []
     for id in videos:
         items = _pull_video_data(id, api_key)["items"][0]
+
         video_stats = items["statistics"]
         video_stats["as_of_datetime"] = current_time
         video_stats["video_id"] = id
 
         video_statistics.append(video_stats)
-        logger.info(f"""Pulled Youtube Time Series Data on {items['snippet']['title']}""")
-    stats_data = pd.DataFrame(video_statistics)
 
-    return stats_data
+        logger.info(f"""Pulled Youtube Time Series Data on {items['snippet']['title']}""")
+
+    return pd.DataFrame(video_statistics)
 
 def _check_if_dataset_exists(name: str) -> Union[str, None]:
     """
@@ -106,24 +101,10 @@ def _check_if_dataset_exists(name: str) -> Union[str, None]:
     Returns:
         id (string) or None
     """
-    # TODO: May need to make a Client object?
-    # 
     datasets = dr.Dataset.list()
     return next((dataset.id for dataset in datasets if dataset.name == name), None)
 
-def _write_new_dataset_to_catalog(df: pd.DataFrame, dataset_name, client) -> str:
-    """
-    Write the metadata and stats dataframes to the AI Catalog
-    """
-    from logzero import logger
-
-    dr_url = client.endpoint.split("/api")[0]
-    catalog_id = dr.Dataset.create_from_in_memory_data(df, fname=dataset_name).id
-    logger.info(f"Dataset {dataset_name} created: {dr_url + '/' + catalog_id}")
-    return catalog_id
-
 # TODO: update this (see notes from Marshall huddle) such that it doesn't upload new version of dataset
-#   
 def update_or_create_dataset(
         endpoint: str,
         token: str,
@@ -146,30 +127,19 @@ def update_or_create_dataset(
         dataset.modify(name=f"{name}")
     else:
         current_data = dr.Dataset.get(dataset_id).get_as_dataframe()
-        date_column = pd.to_datetime(current_data["as_of_datetime"])
-        latest_time_pulled = date_column.max()
+        latest_time_pulled = pd.to_datetime(current_data["as_of_datetime"]).max()
+
         time_pulled_this_df = pd.to_datetime(data_frame["as_of_datetime"]).max()
-        print(time_pulled_this_df, "current time pulled")
-        print(abs(latest_time_pulled - time_pulled_this_df), "\n\n")
+
+        # Guard rail to ensure that there is sufficient time between data pulls.
         if abs(latest_time_pulled - time_pulled_this_df) <= timedelta(hours=0.5):
-            print("returning\n\n")
             return name
         else:
             # update dataset if time is greater than 2 hours
             updated_df = pd.concat([current_data, data_frame]).reset_index(drop=True)
             dr.Dataset.create_version_from_in_memory_data(dataset_id, updated_df)
-            # _write_new_dataset_to_catalog(updated_df, dataset_name=name, client=CLIENT)
     
     return name
-
-
-def combine_video_ids(
-        list1: List[str],
-        list2: List[str]
-) -> List[str]:
-    """
-    """
-    return list1 + list2
 
 def _find_existing_dataset(
     timeout_secs: int, dataset_name: str, use_cases: Optional[UseCaseLike] = None
@@ -194,7 +164,7 @@ def _find_existing_dataset(
 def create_modeling_dataset(combined_dataset_name: str,
                                  metadataset_id: str, 
                                  timeseries_dataset_name: str,
-                                 use_cases: Optional[UseCaseLike] = None) -> str:
+                                 use_cases: Optional[UseCaseLike] = None) -> None:
     """Prepare a dataset for modeling in DataRobot.
     
     Parameters
@@ -207,16 +177,19 @@ def create_modeling_dataset(combined_dataset_name: str,
     -------
     str
         ID of the dataset prepared for modeling in DataRobot
-    """#TODO: Should it return a dr.Dataset?
-    # Join the metadata and timeseries data on the Video ID
+    """
+    # TODO: Should it return a dr.Dataset?
     # TODO: can I join datasets as dr.Datasets?
-    # TOOD: Should be uniform in terms of what I pass in for each dataframe.
+    # TODO: Should be uniform in terms of what I pass in for each dataframe (id, id OR name, name)
     metadata_df = dr.Dataset.get(metadataset_id).get_as_dataframe()
-
+    print(timeseries_dataset_name)
     timeseries_id = _find_existing_dataset(timeout_secs=30, dataset_name=timeseries_dataset_name, use_cases=use_cases)
     timeseries_df = dr.Dataset.get(timeseries_id).get_as_dataframe()
 
-    new_data = pd.merge(metadata_df, timeseries_df, on="video_id", how="inner")
+    # Join the metadata and timeseries data on the Video ID
+    new_data = pd.merge(metadata_df, timeseries_df, on="video_id", how="inner").reset_index(drop=True)
+
+    new_data["video_diff"] = None
 
     combined_dataset_id = _check_if_dataset_exists(combined_dataset_name)
 
@@ -230,4 +203,3 @@ def create_modeling_dataset(combined_dataset_name: str,
         current_data = dr.Dataset.get(combined_dataset_id).get_as_dataframe()
         updated_df = pd.concat([current_data, new_data]).reset_index(drop=True)
         dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, updated_df)
-    # dataset = dr.Dataset.create_from_in_memory_data(data_frame=data, use_cases=use_cases)

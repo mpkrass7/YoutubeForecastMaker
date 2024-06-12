@@ -161,7 +161,7 @@ def _find_existing_dataset(
     raise KeyError("No matching dataset found")
 
 
-def create_modeling_dataset(combined_dataset_name: str,
+def create_modeling_dataset(combined_dataset_name: str, #TODO: change 'combined' to modeling or something
                                  metadataset_id: str, 
                                  timeseries_data: pd.DataFrame,
                                  use_cases: Optional[UseCaseLike] = None) -> None:
@@ -185,8 +185,7 @@ def create_modeling_dataset(combined_dataset_name: str,
 
     # Join the metadata and timeseries data on the Video ID
     new_data = pd.merge(metadata_df, timeseries_data, on="video_id", how="inner").reset_index(drop=True)
-
-    new_data["video_diff"] = None
+    new_data["viewDiff"] = None
 
     combined_dataset_id = _check_if_dataset_exists(combined_dataset_name)
 
@@ -197,6 +196,17 @@ def create_modeling_dataset(combined_dataset_name: str,
         )
         dataset.modify(name=f"{combined_dataset_name}")
     else:
-        current_data = dr.Dataset.get(combined_dataset_id).get_as_dataframe()
-        updated_df = pd.concat([current_data, new_data]).reset_index(drop=True)
-        dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, updated_df)
+        current_modeling_data = dr.Dataset.get(combined_dataset_id).get_as_dataframe()
+
+        staging_data = pd.concat([current_modeling_data, new_data]).reset_index(drop=True)
+
+        # Calculate the difference in viewCount from the previous hour for each entry
+        #   for the first entry, it remains NaN?
+        staging_data['as_of_datetime'] = pd.to_datetime(staging_data['as_of_datetime'], errors='coerce')
+        staging_data = staging_data.sort_values(['video_id', 'as_of_datetime'])
+
+        staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()
+        staging_data['likeDiff'] = staging_data.groupby('video_id')['likeCount'].diff()
+        staging_data['commentDiff'] = staging_data.groupby('video_id')['commentCount'].diff()
+
+        dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, staging_data)

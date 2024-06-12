@@ -53,20 +53,8 @@ deploy_forecast.scoring_code:
 # Streamlit custom app assets
 # ===========================
 
-# TODO: Not using assistant right now.
-# {% if cookiecutter.gen_ai_experience_type == 'assistant' %}
-# deploy_streamlit_app.ai_assistant:
-#   type: kedro_datasets.text.TextDataset
-#   filepath: include/{{ cookiecutter.python_package }}/app/ai_assistant.py
+# TODO: Not using assistant right now. Put pack in code from forecastic
 
-# deploy_streamlit_app.app_human_svg:
-#   type: kedro_datasets.text.TextDataset
-#   filepath: include/{{ cookiecutter.python_package }}/app/human.svg
-
-# deploy_streamlit_app.app_robot_svg:
-#   type: kedro_datasets.text.TextDataset
-#   filepath: include/{{ cookiecutter.python_package }}/app/robot.svg
-# {%- endif %}
 
 deploy_streamlit_app.app_code:
   type: kedro_datasets.text.TextDataset
@@ -92,9 +80,9 @@ deploy_streamlit_app.app_secrets:
   type: kedro_datasets.text.TextDataset
   filepath: include/{{ cookiecutter.python_package }}/app/.streamlit/secrets-template.toml
 
-deploy_streamlit_app.app_logo:
-  type: kedro_datasets.pillow.ImageDataset
-  filepath: include/{{ cookiecutter.python_package }}/app/DataRobot.png
+# deploy_streamlit_app.app_logo:
+#   type: kedro_datasets.pillow.ImageDataset
+#   filepath: include/{{ cookiecutter.python_package }}/app/DataRobot.png
 
 deploy_streamlit_app.app_style:
   type: kedro_datasets.text.TextDataset

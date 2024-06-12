@@ -20,7 +20,7 @@ from datarobotx.idp.registered_model_versions import (
 )
 from datarobotx.idp.use_cases import get_or_create_use_case
 
-from .nodes import ensure_deployment_settings, prepare_dataset_for_modeling, put_forecast_distance_into_registered_model_name
+from .nodes import ensure_deployment_settings, prepare_dataset_for_modeling, put_forecast_distance_into_registered_model_name, get_modeling_dataset_id
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
@@ -35,13 +35,10 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs="use_case_id",
         ),
         node(
-            name="prepare_dataset_for_modeling",
-            func=prepare_dataset_for_modeling,
+            name="get_modeling_dataset_id",
+            func=get_modeling_dataset_id,
             inputs={
                 "dataset_name": "params:dataset_name",
-                "target": "params:project.analyze_and_model_config.target",
-                "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
-                "multiseries_id_columns": "params:project.datetime_partitioning_config.multiseries_id_columns",
                 "use_cases": "use_case_id"
             },
             outputs="preprocessed_timeseries_data_id",
@@ -103,13 +100,14 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs="deployment_id",
         ),
         node(
-            name="make_scoring_dataset",
+            name="prepare_dataset_for_modeling",
             func=prepare_dataset_for_modeling,
             inputs={
-                "data": "raw_timeseries_data",
+                "dataset_name": "params:dataset_name",
                 "target": "params:project.analyze_and_model_config.target",
                 "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
                 "multiseries_id_columns": "params:project.datetime_partitioning_config.multiseries_id_columns",
+                "use_cases": "use_case_id"
             },
             outputs="scoring_data",
         ),

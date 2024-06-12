@@ -38,10 +38,7 @@ def _find_existing_dataset(
     raise KeyError("No matching dataset found")
 
 
-def prepare_dataset_for_modeling(dataset_name: str,
-                                 target: str, 
-                                 datetime_partition_column: str, 
-                                 multiseries_id_columns: List[str],
+def get_modeling_dataset_id(dataset_name: str,
                                  use_cases: Optional[UseCaseLike] = None) -> str:
     """Prepare a dataset for modeling in DataRobot.
     
@@ -66,10 +63,48 @@ def prepare_dataset_for_modeling(dataset_name: str,
     """#TODO: Should it return a dr.Dataset?
     # Join the metadata and timeseries data on the Video ID
     # TODO: can I join datasets as dr.Datasets?
-    print(use_cases, dataset_name)
+    # TODO: Should probably rename this function. What happens if preprocessing occurs here?
+    #       Will the custom app have to be rebuilt. I think the reason why we don't do preprocessing
+    #       In the deploy forecast pipeline is because it won't be run on a schedule.
     dataset_id = _find_existing_dataset(timeout_secs=30, dataset_name=dataset_name, use_cases=use_cases)
 
     return dataset_id
+
+
+def prepare_dataset_for_modeling(dataset_name: str,
+                                 target: str, 
+                                 datetime_partition_column: str, 
+                                 multiseries_id_columns: List[str],
+                                 use_cases: Optional[UseCaseLike] = None) -> pd.DataFrame:
+    """Prepare a dataset for modeling in DataRobot.
+    
+    Parameters
+    ----------
+    metadata : pd.DataFrame
+        The raw metadata dataset to combine with timeseries data for modeling
+    timeseries_data: pd.DataFrame
+        The raw timeseries dataset to combine with metadata for modeling
+    target : str
+        The name of the target column
+    datetime_partition_column : str
+        The name of the datetime partition column
+    multiseries_id_columns : List[str]
+        The name of the column that defines the multiseries id.
+        Should be a list with one entry.
+    
+    Returns
+    -------
+    pd.DataFrame
+        ID of the dataset prepared for modeling in DataRobot  #TODO: get the docstring from forecastic
+    """#TODO: Should it return a dr.Dataset?
+    # Join the metadata and timeseries data on the Video ID
+    # TODO: can I join datasets as dr.Datasets?
+    # TODO: Should probably rename this function. What happens if preprocessing occurs here?
+    #       Will the custom app have to be rebuilt. I think the reason why we don't do preprocessing
+    #       In the deploy forecast pipeline is because it won't be run on a schedule.
+    dataset_id = _find_existing_dataset(timeout_secs=30, dataset_name=dataset_name, use_cases=use_cases)
+
+    return dr.Dataset.get(dataset_id).get_as_dataframe()
 
 
 def put_forecast_distance_into_registered_model_name(registered_model_name: str, forecast_window_start: str, forecast_window_end: str) -> str:

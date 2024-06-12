@@ -69,16 +69,6 @@ def prepare_dataset_for_modeling(dataset_name: str,
     print(use_cases, dataset_name)
     dataset_id = _find_existing_dataset(timeout_secs=30, dataset_name=dataset_name, use_cases=use_cases)
 
-    current_data = dr.Dataset.get(dataset_id).get_as_dataframe()
-
-    # Calculate the difference in viewCount from the previous hour for each entry
-    #   for the first entry, it remains NaN?
-    current_data['as_of_datetime'] = pd.to_datetime(current_data['as_of_datetime'])
-    current_data = current_data.sort_values(['video_id', 'as_of_datetime'])
-
-    current_data['video_diff'] = current_data.groupby('video_id')['viewCount'].diff()
-
-    dr.Dataset.create_version_from_in_memory_data(dataset_id, current_data)
     return dataset_id
 
 

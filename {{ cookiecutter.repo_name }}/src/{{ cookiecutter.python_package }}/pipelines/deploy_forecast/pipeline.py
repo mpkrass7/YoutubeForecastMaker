@@ -20,7 +20,7 @@ from datarobotx.idp.registered_model_versions import (
 )
 from datarobotx.idp.use_cases import get_or_create_use_case
 
-from .nodes import ensure_deployment_settings, prepare_dataset_for_modeling, put_forecast_distance_into_registered_model_name, get_scoring_code
+from .nodes import ensure_deployment_settings, prepare_dataset_for_modeling, put_forecast_distance_into_registered_model_name
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
@@ -31,7 +31,6 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
                 "name": "params:use_case.name",
-                "description": "params:use_case.description", #TODO: make sure user puts this as description?
             },
             outputs="use_case_id",
         ),
@@ -103,17 +102,17 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="deployment_id",
         ),
-        # node(
-        #     name="make_scoring_dataset",
-        #     func=prepare_dataset_for_modeling,
-        #     inputs={
-        #         "data": "raw_timeseries_data",
-        #         "target": "params:project.analyze_and_model_config.target",
-        #         "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
-        #         "multiseries_id_columns": "params:project.datetime_partitioning_config.multiseries_id_columns",
-        #     },
-        #     outputs="scoring_data",
-        # ),
+        node(
+            name="make_scoring_dataset",
+            func=prepare_dataset_for_modeling,
+            inputs={
+                "data": "raw_timeseries_data",
+                "target": "params:project.analyze_and_model_config.target",
+                "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
+                "multiseries_id_columns": "params:project.datetime_partitioning_config.multiseries_id_columns",
+            },
+            outputs="scoring_data",
+        ),
         node(
             name="ensure_deployment_settings",
             func=ensure_deployment_settings,
@@ -136,7 +135,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.default_prediction_server_id",
         },
         outputs={
-            # "scoring_data",
+            "scoring_data",
             "project_id",
             "recommended_model_id",
             "deployment_id"

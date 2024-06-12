@@ -41,6 +41,14 @@ get_data_pipeline.timeseries_dataset_name:
   type: text.TextDataset
   filepath: data/outputs/timeseries_dataset_name.txt
 
+scoring_data:
+  type: pandas.CSVDataset
+  filepath: data/outputs/scoring_data.csv
+
+deploy_forecast.scoring_code:
+  type: datarobotx.idp.common.archive_dataset.ArchiveDataset
+  filepath: data/outputs/scoring_code.tar.gz
+
 # ===========================
 # Streamlit custom app assets
 # ===========================

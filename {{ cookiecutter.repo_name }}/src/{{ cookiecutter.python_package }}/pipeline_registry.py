@@ -11,6 +11,7 @@ from typing import Dict
 from kedro.pipeline import Pipeline
 from .pipelines import get_data_pipeline as get_data_p
 from .pipelines import deploy_forecast as deploy
+from .pipelines import deploy_streamlit_app as deploy_st
 
 def register_pipelines() -> Dict[str, Pipeline]:
     """Register the project's pipelines.
@@ -20,9 +21,10 @@ def register_pipelines() -> Dict[str, Pipeline]:
     """
     # The default pipeline will deploy the forecast and the streamlit app
     deploy_forecast = deploy.create_pipeline()
+    deploy_streamlit_app = deploy_st.create_pipeline()
     # The pull data pipeline will pull data from Youtube
     pull_data = get_data_p.create_pipeline()
     return {
-        "__default__": deploy_forecast, # TODO: add deploy streamlit
+        "__default__": deploy_forecast + deploy_streamlit_app,
         "pull_data": pull_data,
     }

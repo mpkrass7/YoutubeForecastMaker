@@ -33,8 +33,12 @@ deploy_forecast:
                                                 # I'm worried that the user may have to change too many things at this stage.
       multiseries_id_columns: [video_id]
       use_time_series: True
-      forecast_window_start: 
-      forecast_window_end: 
+      feature_derivation_window_start: -35
+      feature_derivation_window_end: 0
+      forecast_window_start: 1
+      forecast_window_end: 24
+      # TODO: what other configurations should we add? Should we add and leave empty?
+      #   - Known in advance?
     advanced_options_config:
       seed: 42
   registered_model:

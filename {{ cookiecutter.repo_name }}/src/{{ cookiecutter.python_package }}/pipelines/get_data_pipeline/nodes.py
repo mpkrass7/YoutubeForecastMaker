@@ -163,7 +163,7 @@ def _find_existing_dataset(
 
 def create_modeling_dataset(combined_dataset_name: str,
                                  metadataset_id: str, 
-                                 timeseries_dataset_name: str,
+                                 timeseries_data: pd.DataFrame,
                                  use_cases: Optional[UseCaseLike] = None) -> None:
     """Prepare a dataset for modeling in DataRobot.
     
@@ -182,12 +182,9 @@ def create_modeling_dataset(combined_dataset_name: str,
     # TODO: can I join datasets as dr.Datasets?
     # TODO: Should be uniform in terms of what I pass in for each dataframe (id, id OR name, name)
     metadata_df = dr.Dataset.get(metadataset_id).get_as_dataframe()
-    print(timeseries_dataset_name)
-    timeseries_id = _find_existing_dataset(timeout_secs=30, dataset_name=timeseries_dataset_name, use_cases=use_cases)
-    timeseries_df = dr.Dataset.get(timeseries_id).get_as_dataframe()
 
     # Join the metadata and timeseries data on the Video ID
-    new_data = pd.merge(metadata_df, timeseries_df, on="video_id", how="inner").reset_index(drop=True)
+    new_data = pd.merge(metadata_df, timeseries_data, on="video_id", how="inner").reset_index(drop=True)
 
     new_data["video_diff"] = None
 

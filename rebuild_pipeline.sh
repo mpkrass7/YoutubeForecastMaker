@@ -15,5 +15,5 @@ fi
 rm -Rf "$1-old"
 echo $(pwd)
 
-cd "$1"
-kedro run -p "pull_data"
+# cd "$1"
+# kedro run -p "pull_data"

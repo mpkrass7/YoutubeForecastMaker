@@ -54,6 +54,17 @@ def create_pipeline(**kwargs) -> Pipeline:
             tags=["checkpoint"],
         ),
         node(
+            name="preprocess_data",
+            func=create_modeling_dataset,
+            inputs={
+                "combined_dataset_name": "params:combined_dataset_name",
+                "metadataset_id": "metadataset_id",
+                "timeseries_data": "time_series_data",
+                "use_cases": "use_case_id",
+            },
+            outputs=None,
+        ),
+        node(
             name="Pull_metadata",
             func=compile_metadata,
             inputs={
@@ -67,7 +78,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             tags=["checkpoint"],
         ),
         node(
-            name="update_dataset",
+            name="update_timeseries_data",
             func=update_or_create_dataset,
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
@@ -91,17 +102,6 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "data_frame": "metadata",
             },
             outputs="metadataset_id",
-        ),
-        node(
-            name="preprocess_data",
-            func=create_modeling_dataset,
-            inputs={
-                "combined_dataset_name": "params:combined_dataset_name",
-                "metadataset_id": "metadataset_id",
-                "timeseries_dataset_name": "timeseries_dataset_name",
-                "use_cases": "use_case_id",
-            },
-            outputs=None,
         ),
         # TODO: What is this for?
         # node(

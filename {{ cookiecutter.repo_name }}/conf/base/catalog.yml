@@ -80,9 +80,9 @@ deploy_streamlit_app.app_secrets:
   type: kedro_datasets.text.TextDataset
   filepath: include/{{ cookiecutter.python_package }}/app/.streamlit/secrets-template.toml
 
-# deploy_streamlit_app.app_logo:
-#   type: kedro_datasets.pillow.ImageDataset
-#   filepath: include/{{ cookiecutter.python_package }}/app/DataRobot.png
+deploy_streamlit_app.app_logo:
+  type: kedro_datasets.pillow.ImageDataset
+  filepath: include/{{ cookiecutter.python_package }}/app/DataRobot.png
 
 deploy_streamlit_app.app_style:
   type: kedro_datasets.text.TextDataset

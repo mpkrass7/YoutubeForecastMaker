@@ -95,8 +95,10 @@ def prepare_dataset_for_modeling(dataset_name: str,
     Returns
     -------
     pd.DataFrame
-        ID of the dataset prepared for modeling in DataRobot  #TODO: get the docstring from forecastic
+        ID of the dataset prepared for modeling in DataRobot  
+        #TODO: get the docstring from forecastic
     """#TODO: Should it return a dr.Dataset?
+    import datarobot as dr
     # Join the metadata and timeseries data on the Video ID
     # TODO: can I join datasets as dr.Datasets?
     # TODO: Should probably rename this function. What happens if preprocessing occurs here?

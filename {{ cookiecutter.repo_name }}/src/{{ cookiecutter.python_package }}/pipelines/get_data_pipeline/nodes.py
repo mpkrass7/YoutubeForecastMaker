@@ -79,7 +79,7 @@ def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
 
     # It's important to ensure consistency by adding in a timezone.
     timezone = pytz.timezone('America/New_York')
-    current_time = datetime.now(tz=timezone).strftime('%Y-%m-%d %H:%M')
+    current_time = datetime.now(tz=timezone).strftime('%Y-%m-%d %H:%M:%S')
     
     video_statistics = []
     for id in videos:
@@ -208,5 +208,7 @@ def create_modeling_dataset(combined_dataset_name: str, #TODO: change 'combined'
         staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()
         staging_data['likeDiff'] = staging_data.groupby('video_id')['likeCount'].diff()
         staging_data['commentDiff'] = staging_data.groupby('video_id')['commentCount'].diff()
+
+        staging_data = staging_data.sort_values(by=["viewCount", "video_id"])
 
         dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, staging_data)

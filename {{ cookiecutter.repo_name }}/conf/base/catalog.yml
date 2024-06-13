@@ -23,9 +23,9 @@ deploy_forecast.use_case_id:
   type: text.TextDataset
   filepath: data/outputs/use_case_id.txt
 
-deploy_forecast.dataset_id:
+preprocessed_timeseries_data_id:
   type: text.TextDataset
-  filepath: data/outputs/dataset_id.txt
+  filepath: data/outputs/preprocessed_timeseries_data_id.txt
 
 project_id:
   type: text.TextDataset
@@ -107,3 +107,7 @@ deploy_streamlit_app.app_execution_environment_version_id:
 deploy_streamlit_app.application_id:
   type: kedro_datasets.text.TextDataset
   filepath: data/outputs/app_id.txt
+
+deploy_streamlit_app.preprocessed_timeseries_data_id:
+  type: text.TextDataset
+  filepath: data/outputs/preprocessed_timeseries_data_id.txt

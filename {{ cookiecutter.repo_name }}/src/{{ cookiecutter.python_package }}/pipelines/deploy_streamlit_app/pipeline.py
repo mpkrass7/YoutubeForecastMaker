@@ -89,7 +89,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:deployment.prediction_interval": "params:deploy_forecast.deployment.prediction_interval",
         },
         inputs={
-            "scoring_data",
             "project_id",
             "recommended_model_id",
             "deployment_id",

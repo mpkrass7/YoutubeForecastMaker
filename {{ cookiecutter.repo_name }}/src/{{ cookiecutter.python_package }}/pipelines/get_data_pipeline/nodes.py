@@ -185,7 +185,9 @@ def create_modeling_dataset(combined_dataset_name: str, #TODO: change 'combined'
 
     # Join the metadata and timeseries data on the Video ID
     new_data = pd.merge(metadata_df, timeseries_data, on="video_id", how="inner").reset_index(drop=True)
-    new_data["viewDiff"] = None
+    new_data["viewDiff"] = 0
+    new_data["likeDiff"] = 0
+    new_data["commentDiff"] = 0
 
     combined_dataset_id = _check_if_dataset_exists(combined_dataset_name)
 

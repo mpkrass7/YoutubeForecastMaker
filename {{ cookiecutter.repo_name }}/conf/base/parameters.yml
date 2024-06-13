@@ -26,14 +26,14 @@ deploy_forecast:
     analyze_and_model_config:
       metric: RMSE
       mode: quick
-      target: viewCount
+      target: viewDiff
       worker_count: 12
     datetime_partitioning_config:
-      datetime_partition_column: "as_of_datetime" #TODO: in the get_data pipeline, can I put a cookiecutter as the datetime_partition column?
+      datetime_partition_column: as_of_datetime #TODO: in the get_data pipeline, can I put a cookiecutter as the datetime_partition column?
                                                 # I'm worried that the user may have to change too many things at this stage.
-      multiseries_id_columns: [video_id]
+      multiseries_id_columns: [title]
       use_time_series: True
-      feature_derivation_window_start: -12
+      feature_derivation_window_start: -14
       feature_derivation_window_end: 0
       forecast_window_start: 1
       forecast_window_end: 6
@@ -53,8 +53,8 @@ deploy_streamlit_app:
   environment_name: {{ cookiecutter.project_name }} Streamlit Environment
   environment_use_cases:
     - customApplication
-  page_title: Forecast Conversation Sensation
-  graph_y_axis: Dollars ($)
+  page_title: Daftpunk Music Video Conversation
+  graph_y_axis: Increase in Views
   lower_bound_forecast_at_0: True
   headline:
     temperature: 0.2

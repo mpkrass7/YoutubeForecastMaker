@@ -23,7 +23,7 @@ def make_app_assets(
     style_css: str,
     config_toml: str,
     secrets_toml: str,
-    scoring_data: pd.DataFrame,
+    scoring_data: str,
 ) -> tempfile.TemporaryDirectory:
     """Assemble directory of streamlit assets to be uploaded for a new DR execution environment.
 
@@ -47,8 +47,8 @@ def make_app_assets(
         config.toml contents to be included in execution environment
     secrets_toml : str
         secrets.toml contents to be included in execution environment
-    scoring_data : pd.DataFrame
-        Scoring data to be included in execution environment
+    scoring_data : str
+        Scoring dataset ID to be included in execution environment
 
     Returns
     -------
@@ -97,7 +97,7 @@ def make_app_assets(
     with open(dot_streamlit_dir / "secrets.toml", "w") as f:
         f.write(secrets_toml)
 
-    scoring_data.to_csv(os.path.join(path_to_d, "scoring_data.csv"), index=False)
+    # scoring_data.to_csv(os.path.join(path_to_d, "scoring_data.csv"), index=False)
 
     return d
 
@@ -119,6 +119,7 @@ extra_nodes = [
             "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
             "multiseries_id_column": "params:project.datetime_partitioning_config.multiseries_id_columns",
             "prediction_interval": "params:deployment.prediction_interval",
+            "scoring_data": "preprocessed_timeseries_data_id"
         },
         outputs="app_parameters",
     ),
@@ -135,7 +136,7 @@ extra_nodes = [
             "style_css": "app_style",
             "config_toml": "app_config",
             "secrets_toml": "app_secrets",
-            "scoring_data": "scoring_data",
+            "scoring_data": "preprocessed_timeseries_data_id",
         },
         outputs="app_assets",
     ),

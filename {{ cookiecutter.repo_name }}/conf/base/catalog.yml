@@ -7,9 +7,7 @@
 # Please see the Kedro Data Catalog documentation to learn more
 # https://docs.kedro.org/en/stable/data/data_catalog.html
 
-get_data_pipeline.time_series_data:
-    type: pandas.CSVDataset
-    filepath: data/outputs/time_series_data.csv
+
     
 get_data_pipeline.metadata:
     type: pandas.CSVDataset
@@ -22,6 +20,10 @@ get_data_pipeline.use_case_id:
 deploy_forecast.use_case_id:
   type: text.TextDataset
   filepath: data/outputs/use_case_id.txt
+
+time_series_data:
+  type: pandas.CSVDataset
+  filepath: data/outputs/time_series_data.csv
 
 preprocessed_timeseries_data_id:
   type: text.TextDataset

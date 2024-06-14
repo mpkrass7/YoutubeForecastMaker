@@ -12,6 +12,7 @@ from kedro.pipeline import Pipeline
 from .pipelines import get_data_pipeline as get_data_p
 from .pipelines import deploy_forecast as deploy
 from .pipelines import deploy_streamlit_app as deploy_st
+from .pipelines import preprocessing as prep
 
 def register_pipelines() -> Dict[str, Pipeline]:
     """Register the project's pipelines.
@@ -25,7 +26,9 @@ def register_pipelines() -> Dict[str, Pipeline]:
     deploy_streamlit_app = deploy_st.create_pipeline()
     # The pull data pipeline will pull data from Youtube
     pull_data = get_data_p.create_pipeline()
+    preprocess_data = prep.create_pipeline()
     return {
         "__default__": deploy_forecast + deploy_streamlit_app,
         "pull_data": pull_data,
+        "data_prep": preprocess_data,
     }

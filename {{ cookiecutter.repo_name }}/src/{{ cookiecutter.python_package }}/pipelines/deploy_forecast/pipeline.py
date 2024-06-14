@@ -34,6 +34,9 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="use_case_id",
         ),
+        #FInd metadata ID, find stats ID
+        # Next node does dataprep, try to find name and create new version
+        # If name doesn't
         node(
             name="get_modeling_dataset_id",
             func=get_modeling_dataset_id,
@@ -41,7 +44,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "dataset_name": "params:dataset_name",
                 "use_cases": "use_case_id"
             },
-            outputs="preprocessed_timeseries_data_id",
+            outputs="preprocessed_timeseries_data_id", 
         ),
         node(
             name="make_autopilot_run",
@@ -111,6 +114,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="scoring_data",
         ),
+        # This is where we'll set up retraining
         node(
             name="ensure_deployment_settings",
             func=ensure_deployment_settings,

@@ -6,7 +6,6 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 from kedro.pipeline import node, Pipeline
 from kedro.pipeline.modular_pipeline import pipeline
-from datarobotx.idp.datasets import get_or_create_dataset_from_df
 from datarobotx.idp.use_cases import get_or_create_use_case
 
 from .nodes import (
@@ -14,6 +13,7 @@ from .nodes import (
                 compile_timeseries_data,
                 update_or_create_dataset,
                 compile_metadata,
+                update_or_create_metadataset
                 )
 
 
@@ -75,21 +75,17 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "data_frame": "time_series_data",
                 "use_cases": "use_case_id",
             },
-            outputs="timeseries_dataset_name" #TODO: does putting this as output actually ensure it gets
-                                              # run before "preprocess_data" node?
+            outputs=None
         ),
-        # TODO: how do I save the metadataset name?
         node(
             name="update_metadata",
-            func=get_or_create_dataset_from_df,
+            func=update_or_create_metadataset,
             inputs={
-                "endpoint": "params:credentials.datarobot.endpoint",
-                "token": "params:credentials.datarobot.api_token",
                 "use_cases": "use_case_id",
                 "name": "params:metadataset_name",
                 "data_frame": "metadata",
             },
-            outputs="metadataset_id",
+            outputs=None
         ),
         # TODO: What is this for?
         # node(
@@ -109,7 +105,4 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.api_token",
             "params:credentials.youtube_api_key",
         },
-        outputs={
-            "time_series_data": "time_series_data"
-        }
     )

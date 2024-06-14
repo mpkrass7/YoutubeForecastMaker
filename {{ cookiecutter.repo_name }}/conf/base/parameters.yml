@@ -15,6 +15,13 @@ get_data_pipeline:
     - PLFzMBB6IQkE4_BZDBRPtxNEafeGdDFDqV
   timeseries_dataset_name: {{ cookiecutter.project_name }} Raw Time Series Data
   metadataset_name: {{ cookiecutter.project_name }} Meta Data
+  # combined_dataset_name: {{ cookiecutter.project_name }} Modeling Data
+
+preprocessing:
+  use_case:
+    name: {{ cookiecutter.project_name }}
+  timeseries_dataset_name: {{ cookiecutter.project_name }} Raw Time Series Data
+  metadataset_name: {{ cookiecutter.project_name }} Meta Data
   combined_dataset_name: {{ cookiecutter.project_name }} Modeling Data
 
 deploy_forecast:

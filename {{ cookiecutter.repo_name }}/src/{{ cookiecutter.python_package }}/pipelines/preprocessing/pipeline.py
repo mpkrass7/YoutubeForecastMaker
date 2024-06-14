@@ -6,7 +6,6 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 from kedro.pipeline import node, Pipeline
 from kedro.pipeline.modular_pipeline import pipeline
-from datarobotx.idp.datasets import get_or_create_dataset_from_df
 from datarobotx.idp.use_cases import get_or_create_use_case
 
 from .nodes import (
@@ -31,8 +30,8 @@ def create_pipeline(**kwargs) -> Pipeline:
             func=create_or_update_modeling_dataset,
             inputs={
                 "combined_dataset_name": "params:combined_dataset_name",
-                "metadataset_id": "metadataset_id",
-                "timeseries_data": "time_series_data",
+                "metadataset_name": "params:metadataset_name",
+                "timeseries_data_name": "params:timeseries_dataset_name",
                 "use_cases": "use_case_id",
             },
             outputs=None,
@@ -41,12 +40,9 @@ def create_pipeline(**kwargs) -> Pipeline:
     pipeline_inst = pipeline(nodes)
     return pipeline(
         pipeline_inst,
-        namespace="get_data_pipeline",
+        namespace="preprocessing",
         parameters={
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
         },
-        inputs={
-            "time_series_data"
-        }
     )

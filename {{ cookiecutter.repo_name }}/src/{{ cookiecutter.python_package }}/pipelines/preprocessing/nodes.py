@@ -9,13 +9,8 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 import datarobot as dr
 import pandas as pd
 
-
-#TODO: delete these imports, well, not now 
 from datarobot import Dataset
 from datarobot.models.use_cases.utils import UseCaseLike
-from datarobotx.idp.common.hashing import get_hash
-import time
-
 
 def _check_if_dataset_exists(name: str) -> Union[str, None]:
     """
@@ -28,8 +23,8 @@ def _check_if_dataset_exists(name: str) -> Union[str, None]:
 
 
 def create_or_update_modeling_dataset(combined_dataset_name: str, #TODO: change 'combined' to modeling or something
-                                 metadataset_id: str, 
-                                 timeseries_data: pd.DataFrame,
+                                 metadataset_name: str, 
+                                 timeseries_data_name: str,
                                  use_cases: Optional[UseCaseLike] = None) -> None:
     """Prepare a dataset for modeling in DataRobot.
     
@@ -47,10 +42,13 @@ def create_or_update_modeling_dataset(combined_dataset_name: str, #TODO: change 
     # TODO: Should it return a dr.Dataset?
     # TODO: can I join datasets as dr.Datasets?
     # TODO: Should be uniform in terms of what I pass in for each dataframe (id, id OR name, name)
-    metadata_df = dr.Dataset.get(metadataset_id).get_as_dataframe()
+    metadata_df = dr.Dataset.get(_check_if_dataset_exists(metadataset_name)).get_as_dataframe()
+    raw_ts_data = dr.Dataset.get(_check_if_dataset_exists(timeseries_data_name)).get_as_dataframe()
 
     # Join the metadata and timeseries data on the Video ID
-    new_data = pd.merge(metadata_df, timeseries_data, on="video_id", how="inner").reset_index(drop=True)
+    new_data = pd.merge(metadata_df, raw_ts_data, on="video_id", how="inner").reset_index(drop=True)
+
+    # Add in columns for engineered features
     new_data["viewDiff"] = 0
     new_data["likeDiff"] = 0
     new_data["commentDiff"] = 0
@@ -79,4 +77,9 @@ def create_or_update_modeling_dataset(combined_dataset_name: str, #TODO: change 
 
         staging_data = staging_data.sort_values(by=["viewCount", "video_id"])
 
-        dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, staging_data)
+        staging_data = staging_data.drop_duplicates()
+
+        dataset = dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, staging_data)
+
+    return str(dataset.id)
+    

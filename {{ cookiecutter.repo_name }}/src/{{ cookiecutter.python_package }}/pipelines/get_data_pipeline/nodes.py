@@ -112,7 +112,7 @@ def update_or_create_dataset(
         data_frame: pd.DataFrame, 
         use_cases: Optional[UseCaseLike] = None, #TODO: why is this plural and what do you put in here?
         **kwargs: Any,
-) -> str:
+) -> None:
     """
     """
     from datetime import timedelta
@@ -137,9 +137,27 @@ def update_or_create_dataset(
         else:
             # update dataset if time is greater than 2 hours
             updated_df = pd.concat([current_data, data_frame]).reset_index(drop=True)
-            dr.Dataset.create_version_from_in_memory_data(dataset_id, updated_df)
+            dataset = dr.Dataset.create_version_from_in_memory_data(dataset_id, updated_df)
     
-    return name
+    # return str(dataset.id)
+
+# TODO: update this (see notes from Marshall huddle) such that it doesn't upload new version of dataset
+def update_or_create_metadataset(
+        name: str, 
+        data_frame: pd.DataFrame, 
+        use_cases: Optional[UseCaseLike] = None, #TODO: why is this plural and what do you put in here?
+) -> None:
+    """
+    """
+    dataset_id = _check_if_dataset_exists(name)
+
+    if dataset_id is None:
+        dataset: Dataset = Dataset.create_from_in_memory_data(
+            data_frame=data_frame, use_cases=use_cases
+        )
+        dataset.modify(name=f"{name}")        
+    
+    # return str(dataset.id)
 
 def _find_existing_dataset(
     timeout_secs: int, dataset_name: str, use_cases: Optional[UseCaseLike] = None

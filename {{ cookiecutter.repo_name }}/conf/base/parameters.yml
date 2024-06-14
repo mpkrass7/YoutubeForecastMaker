@@ -60,7 +60,7 @@ deploy_streamlit_app:
     temperature: 0.2
     prompt: |
       You are a data analyst. Explain to non-technical executives business leaders what this data suggests.
-      Executive leadership will provide a sales forecast and you will interpret it and summarize the outlook, highlighting key insights.                         
+      Executive leadership will provide a forecast and you will interpret it and summarize the outlook, highlighting key insights.                         
       Your response should be only 1 sentence long, not very wordy. It should be like a news headline. Do not put quotation marks around it.
       Your response, while insightful, should speak to the general direction of the forecast.
       Even if you're unsure, speak with confidence and certainty.

@@ -14,7 +14,6 @@ from .nodes import (
                 compile_timeseries_data,
                 update_or_create_dataset,
                 compile_metadata,
-                create_modeling_dataset,
                 )
 
 
@@ -52,17 +51,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs="time_series_data",
             #TODO: What are the tags for?
             tags=["checkpoint"],
-        ),
-        node(
-            name="preprocess_data",
-            func=create_modeling_dataset,
-            inputs={
-                "combined_dataset_name": "params:combined_dataset_name",
-                "metadataset_id": "metadataset_id",
-                "timeseries_data": "time_series_data",
-                "use_cases": "use_case_id",
-            },
-            outputs=None,
         ),
         node(
             name="Pull_metadata",

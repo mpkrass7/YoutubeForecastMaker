@@ -45,7 +45,6 @@ def create_pipeline(**kwargs) -> Pipeline:
         parameters={
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
-            "params:credentials.youtube_api_key",
         },
         inputs={
             "time_series_data"

@@ -10,9 +10,7 @@ from kedro.pipeline.modular_pipeline import pipeline
 from .nodes import get_or_create_execution_environment_version_with_secrets
 from datarobotx.idp.custom_applications import get_replace_or_create_custom_app_from_env
 from datarobotx.idp.execution_environments import get_or_create_execution_environment
-from .nodes import log_outputs
-from .nodes_extra import extra_nodes
-
+from .nodes import log_outputs, prepare_yaml_content, make_app_assets
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
@@ -69,8 +67,45 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs=None,
         ),
+        node(
+        name="make_app_parameters",
+        func=prepare_yaml_content,
+        inputs={
+            "deployment_id": "deployment_id",
+            "page_title": "params:page_title",
+            "graph_y_axis": "params:graph_y_axis",
+            "lower_bound_forecast_at_0": "params:lower_bound_forecast_at_0",
+            "headline_prompt": "params:headline.prompt",
+            "headline_temperature": "params:headline.temperature",
+            "analysis_temperature": "params:analysis.temperature",
+            "model_name": "params:credentials.azure_openai_llm_credentials.deployment_name",
+            "target": "params:project.analyze_and_model_config.target",
+            "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
+            "multiseries_id_column": "params:project.datetime_partitioning_config.multiseries_id_columns",
+            "prediction_interval": "params:deployment.prediction_interval",
+            "scoring_data": "preprocessed_timeseries_data_id"
+        },
+        outputs="app_parameters",
+        ),
+        node(
+            name="make_app_assets",
+            func=make_app_assets,
+            inputs={
+                "app_py": "app_code",
+                "helpers_py": "app_helpers",
+                "app_parameters_yml": "app_parameters",
+                "requirements": "app_requirements",
+                "dockerfile": "app_dockerfile",
+                "logo": "app_logo",
+                "style_css": "app_style",
+                "config_toml": "app_config",
+                "secrets_toml": "app_secrets",
+                "scoring_data": "preprocessed_timeseries_data_id",
+            },
+            outputs="app_assets",
+        ),
     ]
-    pipeline_inst = pipeline(nodes + extra_nodes)
+    pipeline_inst = pipeline(nodes)
     return pipeline(
         pipeline_inst,
         namespace="deploy_streamlit_app",

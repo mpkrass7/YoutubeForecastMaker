@@ -6,8 +6,9 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
 from __future__ import annotations
-import os
 from typing import Any, Dict, List, TYPE_CHECKING, Union
+
+import tempfile
 
 if TYPE_CHECKING:
     import pathlib
@@ -142,3 +143,89 @@ def log_outputs(
         f"{app_name}[/link]"
     )
     logger.info(msg)
+
+def make_app_assets(
+    app_py: str,
+    helpers_py: str,
+    app_parameters_yml: Any,
+    requirements: str,
+    dockerfile: str,
+    logo: str,
+    style_css: str,
+    config_toml: str,
+    secrets_toml: str,
+    scoring_data: str,
+) -> tempfile.TemporaryDirectory:
+    """Assemble directory of streamlit assets to be uploaded for a new DR execution environment.
+
+    Parameters
+    ----------
+    app_py : str
+        app.py contents to be included in execution environment
+    helpers_py : str
+        helpers.py contents to be included in execution environment
+    app_parameters_yaml : dict or list
+        app_parameters.yaml contents to be included in execution environment
+    requirements_txt : str
+        requirements.txt contents to be included in execution environment
+    dockerfile : str
+        Dockerfile contents to be included in execution environment
+    logo : str
+        location of logo to be included in execution environment
+    style_css : str
+        style.css contents to be included in execution environment
+    config_toml : str
+        config.toml contents to be included in execution environment
+    secrets_toml : str
+        secrets.toml contents to be included in execution environment
+    scoring_data : str
+        Scoring dataset ID to be included in execution environment
+
+    Returns
+    -------
+    tempfile.TemporaryDirectory :
+        Temporary directory containing the contents to be uploaded to DR
+    """
+    import os
+    import pathlib
+    import tempfile
+
+    import yaml
+
+    d = tempfile.TemporaryDirectory()
+    path_to_d = d.name
+
+    files = zip(
+        [
+            app_py,
+            helpers_py,
+            yaml.dump(app_parameters_yml),
+            requirements,
+            dockerfile,
+            style_css,
+        ],
+        [
+            "app.py",
+            "helpers.py",
+            "app_parameters.yaml",
+            "requirements.txt",
+            "Dockerfile",
+            "style.css",
+        ],
+    )
+    for file, name in files:
+        with open(os.path.join(path_to_d, name), "w") as f:
+            f.write(file)
+
+    logo.save(os.path.join(path_to_d, "DataRobot.png"))
+
+    dot_streamlit_dir = pathlib.Path(d.name) / ".streamlit"
+    dot_streamlit_dir.mkdir()
+
+    with open(dot_streamlit_dir / "config.toml", "w") as f:
+        f.write(config_toml)
+
+    with open(dot_streamlit_dir / "secrets.toml", "w") as f:
+        f.write(secrets_toml)
+
+    return d

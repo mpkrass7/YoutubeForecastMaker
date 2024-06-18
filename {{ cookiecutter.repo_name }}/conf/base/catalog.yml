@@ -25,6 +25,10 @@ deploy_forecast.scoring_code:
   type: datarobotx.idp.common.archive_dataset.ArchiveDataset
   filepath: data/outputs/scoring_code.tar.gz
 
+deploy_forecast.preprocessed_timeseries_data_id:
+  type: text.TextDataset
+  filepath: data/outputs/preprocessed_timeseries_data_id.txt
+
 time_series_data:
   type: pandas.CSVDataset
   filepath: data/outputs/time_series_data.csv

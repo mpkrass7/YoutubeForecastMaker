@@ -92,5 +92,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             "project_id",
             "recommended_model_id",
             "deployment_id",
+            "preprocessed_timeseries_data_id",
         },
     )

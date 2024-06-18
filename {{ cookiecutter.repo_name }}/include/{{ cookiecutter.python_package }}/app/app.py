@@ -209,6 +209,7 @@ def fpa():
     titleContainer = st.container()
     headlineContainer = st.container()
     chartContainer = st.container()
+    videoContainer = st.container()
     explanationContainer = st.container()
     # Header
     with titleContainer:
@@ -260,6 +261,12 @@ def fpa():
                     with headlineContainer:
                         with st.spinner("Generating Headline..."):
                             st.subheader(interpretChartHeadline(forecast))
+
+                    with videoContainer:
+                        with st.spinner("Retrieving Youtube Media..."):
+                            video_id = df.loc[df[MULTISERIES_ID_COLUMN] == series]["video_id"].reset_index(drop=True)[0]
+                            url = f"https://www.youtube.com/watch?v={video_id}&list=PLSdoVPM5WnndSQEXRz704yQkKwx76GvPV&index=11"
+                            st.video(data=url, autoplay=True)
 
                     with explanationContainer:
                         with st.spinner("Generating explanation..."):

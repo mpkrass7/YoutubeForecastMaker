@@ -20,15 +20,16 @@ def register_pipelines() -> Dict[str, Pipeline]:
     Returns:
         A mapping from pipeline names to ``Pipeline`` objects.
     """
+    #TODO: test pipelines
     #TODO: Figure out a better way to do default vs. data pull etc.
     # The default pipeline will deploy the forecast and the streamlit app
-    deploy_forecast = deploy.create_pipeline()
-    deploy_streamlit_app = deploy_st.create_pipeline()
-    # The pull data pipeline will pull data from Youtube
-    pull_data = get_data_p.create_pipeline()
-    preprocess_data = prep.create_pipeline()
+    # deploy_forecast = deploy.create_pipeline()
+    # deploy_streamlit_app = deploy_st.create_pipeline()
+    # # The pull data pipeline will pull data from Youtube
+    # pull_data = get_data_p.create_pipeline()
+    # preprocess_data = prep.create_pipeline()
     return {
-        "__default__": deploy_forecast + deploy_streamlit_app,
-        "pull_data": pull_data,
-        "data_prep": preprocess_data,
+        "__default__": deploy.create_pipeline() + deploy_st.create_pipeline(),
+        "pull_data": get_data_p.create_pipeline(),
+        "data_prep": prep.create_pipeline(),
     }

@@ -15,14 +15,13 @@ get_data_pipeline:
     - PLFzMBB6IQkE4_BZDBRPtxNEafeGdDFDqV
   timeseries_dataset_name: {{ cookiecutter.project_name }} Raw Time Series Data
   metadataset_name: {{ cookiecutter.project_name }} Meta Data
-  # combined_dataset_name: {{ cookiecutter.project_name }} Modeling Data
 
 preprocessing:
   use_case:
     name: {{ cookiecutter.project_name }}
   timeseries_dataset_name: {{ cookiecutter.project_name }} Raw Time Series Data
   metadataset_name: {{ cookiecutter.project_name }} Meta Data
-  combined_dataset_name: {{ cookiecutter.project_name }} Modeling Data
+  modeling_dataset_name: {{ cookiecutter.project_name }} Modeling Data
 
 deploy_forecast:
   use_case:
@@ -36,13 +35,10 @@ deploy_forecast:
       target: viewDiff
       worker_count: 12
     datetime_partitioning_config:
-      datetime_partition_column: as_of_datetime #TODO: in the get_data pipeline, can I put a cookiecutter as the datetime_partition column?
-                                                # I'm worried that the user may have to change too many things at this stage.
+      datetime_partition_column: as_of_datetime
       multiseries_id_columns: [title]
       use_time_series: True
-      feature_derivation_window_start: -14
-      feature_derivation_window_end: 0
-      forecast_window_start: 1
+      forecast_window_start: 3 # Forecast Window start must be a multiple of the time step
       forecast_window_end: 6
       # TODO: what other configurations should we add? Should we add and leave empty?
       #   - Known in advance?

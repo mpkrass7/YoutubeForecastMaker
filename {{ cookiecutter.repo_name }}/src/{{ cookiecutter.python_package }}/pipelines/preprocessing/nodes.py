@@ -22,7 +22,7 @@ def _check_if_dataset_exists(name: str) -> Union[str, None]:
     return next((dataset.id for dataset in datasets if dataset.name == name), None)
 
 
-def create_or_update_modeling_dataset(combined_dataset_name: str, #TODO: change 'combined' to modeling or something
+def create_or_update_modeling_dataset(modeling_dataset_name: str, #TODO: change 'modeling' to modeling or something
                                  metadataset_name: str, 
                                  timeseries_data_name: str,
                                  use_cases: Optional[UseCaseLike] = None) -> None:
@@ -39,9 +39,6 @@ def create_or_update_modeling_dataset(combined_dataset_name: str, #TODO: change 
     str
         ID of the dataset prepared for modeling in DataRobot
     """
-    # TODO: Should it return a dr.Dataset?
-    # TODO: can I join datasets as dr.Datasets?
-    # TODO: Should be uniform in terms of what I pass in for each dataframe (id, id OR name, name)
     metadata_df = dr.Dataset.get(_check_if_dataset_exists(metadataset_name)).get_as_dataframe()
     raw_ts_data = dr.Dataset.get(_check_if_dataset_exists(timeseries_data_name)).get_as_dataframe()
 
@@ -53,21 +50,21 @@ def create_or_update_modeling_dataset(combined_dataset_name: str, #TODO: change 
     new_data["likeDiff"] = 0
     new_data["commentDiff"] = 0
 
-    combined_dataset_id = _check_if_dataset_exists(combined_dataset_name)
+    modeling_dataset_id = _check_if_dataset_exists(modeling_dataset_name)
 
     # TODO: Should this be idempotent? (use hash?)
-    if combined_dataset_id is None:
+    if modeling_dataset_id is None:
         dataset: Dataset = Dataset.create_from_in_memory_data(
             data_frame=new_data, use_cases=use_cases
         )
-        dataset.modify(name=f"{combined_dataset_name}")
+        dataset.modify(name=f"{modeling_dataset_name}")
     else:
-        current_modeling_data = dr.Dataset.get(combined_dataset_id).get_as_dataframe()
+        current_modeling_data = dr.Dataset.get(modeling_dataset_id).get_as_dataframe()
 
         staging_data = pd.concat([current_modeling_data, new_data]).reset_index(drop=True)
 
         # Calculate the difference in viewCount from the previous hour for each entry
-        #   for the first entry, it remains NaN?
+        #   for the first entry, it remains 0
         staging_data['as_of_datetime'] = pd.to_datetime(staging_data['as_of_datetime'], errors='coerce')
         staging_data = staging_data.sort_values(['video_id', 'as_of_datetime'])
 
@@ -79,7 +76,7 @@ def create_or_update_modeling_dataset(combined_dataset_name: str, #TODO: change 
 
         staging_data = staging_data.drop_duplicates()
 
-        dataset = dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, staging_data)
+        dataset = dr.Dataset.create_version_from_in_memory_data(modeling_dataset_id, staging_data)
 
     return str(dataset.id)
     

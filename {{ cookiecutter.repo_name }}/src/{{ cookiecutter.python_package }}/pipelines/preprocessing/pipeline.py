@@ -29,7 +29,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             name="preprocess_data",
             func=create_or_update_modeling_dataset,
             inputs={
-                "combined_dataset_name": "params:combined_dataset_name",
+                "modeling_dataset_name": "params:modeling_dataset_name",
                 "metadataset_name": "params:metadataset_name",
                 "timeseries_data_name": "params:timeseries_dataset_name",
                 "use_cases": "use_case_id",

@@ -45,11 +45,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "videos": "combined_videos",
                 "api_key": "params:credentials.youtube_api_key"
             },
-            #TODO: Can I name the output based on the playlist name?
-            #       Also, can there be more than 1 output? Can it 
-            #       represent a tuple?
             outputs="time_series_data",
-            #TODO: What are the tags for?
             tags=["checkpoint"],
         ),
         node(
@@ -59,9 +55,6 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "videos": "combined_videos",
                 "api_key": "params:credentials.youtube_api_key"
             },
-            #TODO: Can I name the output based on the playlist name?
-            #       Also, can there be more than 1 output? Can it 
-            #       represent a tuple?
             outputs="metadata",
             tags=["checkpoint"],
         ),
@@ -87,14 +80,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs=None
         ),
-        # TODO: What is this for?
-        # node(
-        #     name="log_outputs",
-        #     func=log_outputs,
-        #     inputs="greeting",
-        #     outputs=None,
-        #     tags=["logging"],
-        # )
     ]
     pipeline_inst = pipeline(nodes)
     return pipeline(

@@ -20,7 +20,9 @@ from datarobotx.idp.registered_model_versions import (
 )
 from datarobotx.idp.use_cases import get_or_create_use_case
 
-from .nodes import ensure_deployment_settings, prepare_dataset_for_modeling, put_forecast_distance_into_registered_model_name, get_modeling_dataset_id
+from .nodes import (ensure_deployment_settings, 
+                    put_forecast_distance_into_registered_model_name, 
+                    get_modeling_dataset_id)
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
@@ -34,9 +36,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="use_case_id",
         ),
-        #FInd metadata ID, find stats ID
-        # Next node does dataprep, try to find name and create new version
-        # If name doesn't
         node(
             name="get_modeling_dataset_id",
             func=get_modeling_dataset_id,
@@ -102,18 +101,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="deployment_id",
         ),
-        node(
-            name="prepare_dataset_for_modeling",
-            func=prepare_dataset_for_modeling,
-            inputs={
-                "dataset_name": "params:dataset_name",
-                "target": "params:project.analyze_and_model_config.target",
-                "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
-                "multiseries_id_columns": "params:project.datetime_partitioning_config.multiseries_id_columns",
-                "use_cases": "use_case_id"
-            },
-            outputs="scoring_data",
-        ),
         # This is where we'll set up retraining
         node(
             name="ensure_deployment_settings",
@@ -137,7 +124,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.default_prediction_server_id",
         },
         outputs={
-            "scoring_data",
             "project_id",
             "recommended_model_id",
             "deployment_id",

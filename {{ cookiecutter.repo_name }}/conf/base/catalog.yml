@@ -62,9 +62,6 @@ scoring_data:
 # Streamlit custom app assets
 # ===========================
 
-# TODO: Not using assistant right now. Put pack in code from forecastic
-
-
 deploy_streamlit_app.app_code:
   type: kedro_datasets.text.TextDataset
   filepath: include/{{ cookiecutter.python_package }}/app/app.py

@@ -11,7 +11,7 @@ from datarobotx.idp.use_cases import get_or_create_use_case
 from .nodes import (
                 get_videos, 
                 compile_timeseries_data,
-                update_or_create_dataset,
+                update_or_create_timeseries_dataset,
                 compile_metadata,
                 update_or_create_metadataset
                 )
@@ -60,7 +60,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         ),
         node(
             name="update_timeseries_data",
-            func=update_or_create_dataset,
+            func=update_or_create_timeseries_dataset,
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",

@@ -48,22 +48,26 @@ def compile_metadata(videos: List[str], api_key: str) -> pd.DataFrame:
 
     video_metadata = []
     for id in videos:
-        items = _pull_video_data(id, api_key)["items"][0]
+        try:
+            items = _pull_video_data(id, api_key)["items"][0]
 
-        video_metadata.append({
-            "video_id": id,
-            "publishedAt": items["snippet"]["publishedAt"],
-            "channelId": items["snippet"]["channelId"],
-            "title": items["snippet"]["title"],
-            "description": items["snippet"]["description"],
-            "categoryId": items["snippet"]["categoryId"],
-            "channelTitle": items["snippet"]["channelTitle"],
-            "tags": ", ".join(items["snippet"].get("tags", [])),
-            "duration": items["contentDetails"]["duration"],
-            "madeForKids": items["status"]["madeForKids"]
-        })
+            video_metadata.append({
+                "video_id": id,
+                "publishedAt": items["snippet"]["publishedAt"],
+                "channelId": items["snippet"]["channelId"],
+                "title": items["snippet"]["title"],
+                "description": items["snippet"]["description"],
+                "categoryId": items["snippet"]["categoryId"],
+                "channelTitle": items["snippet"]["channelTitle"],
+                "tags": ", ".join(items["snippet"].get("tags", [])),
+                "duration": items["contentDetails"]["duration"],
+                "madeForKids": items["status"]["madeForKids"]
+            })
 
-        logger.info(f"""Pulled Youtube Metadata on {items['snippet']['title']}""")
+            logger.info(f"""Pulled Youtube Metadata on {items['snippet']['title']}""")
+        except IndexError as e:
+            print(e, "video with ID", id, "is not available")
+            continue
         
     return pd.DataFrame(video_metadata)
 
@@ -81,15 +85,19 @@ def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
     
     video_statistics = []
     for id in videos:
-        items = _pull_video_data(id, api_key)["items"][0]
+        try:
+            items = _pull_video_data(id, api_key)["items"][0]
 
-        video_stats = items["statistics"]
-        video_stats["as_of_datetime"] = current_time
-        video_stats["video_id"] = id
+            video_stats = items["statistics"]
+            video_stats["as_of_datetime"] = current_time
+            video_stats["video_id"] = id
 
-        video_statistics.append(video_stats)
+            video_statistics.append(video_stats)
 
-        logger.info(f"""Pulled Youtube Time Series Data on {items['snippet']['title']}""")
+            logger.info(f"""Pulled Youtube Time Series Data on {items['snippet']['title']}""")
+        except IndexError as e:
+            print(e, "video with ID", id, "is not available")
+            continue
 
     return pd.DataFrame(video_statistics)
 
@@ -102,13 +110,12 @@ def _check_if_dataset_exists(name: str) -> Union[str, None]:
     datasets = dr.Dataset.list()
     return next((dataset.id for dataset in datasets if dataset.name == name), None)
 
-# TODO: update this (see notes from Marshall huddle) such that it doesn't upload new version of dataset
-def update_or_create_dataset(
+def update_or_create_timeseries_dataset(
         endpoint: str,
         token: str,
         name: str, 
         data_frame: pd.DataFrame, 
-        use_cases: Optional[UseCaseLike] = None, #TODO: why is this plural and what do you put in here?
+        use_cases: Optional[UseCaseLike] = None,
         **kwargs: Any,
 ) -> None:
     """
@@ -139,11 +146,10 @@ def update_or_create_dataset(
     
     # return str(dataset.id)
 
-# TODO: update this (see notes from Marshall huddle) such that it doesn't upload new version of dataset
 def update_or_create_metadataset(
         name: str, 
         data_frame: pd.DataFrame, 
-        use_cases: Optional[UseCaseLike] = None, #TODO: why is this plural and what do you put in here?
+        use_cases: Optional[UseCaseLike] = None, 
 ) -> None:
     """
     """

@@ -7,31 +7,29 @@
 # Please see the Kedro Data Catalog documentation to learn more
 # https://docs.kedro.org/en/stable/data/data_catalog.html
 
+# get_data_pipeline.metadata:
+#     type: pandas.CSVDataset
+#     filepath: data/outputs/metadata.csv
 
-    
-get_data_pipeline.metadata:
-    type: pandas.CSVDataset
-    filepath: data/outputs/metadata.csv
+# get_data_pipeline.metadataset_name:
+#   type: text.TextDataset
+#   filepath: data/outputs/metadataset_name.txt
 
-get_data_pipeline.metadataset_name:
-  type: text.TextDataset
-  filepath: data/outputs/metadataset_name.txt
+# get_data_pipeline.timeseries_dataset_name:
+#   type: text.TextDataset
+#   filepath: data/outputs/timeseries_dataset_name.txt
 
-get_data_pipeline.timeseries_dataset_name:
-  type: text.TextDataset
-  filepath: data/outputs/timeseries_dataset_name.txt
-
-deploy_forecast.scoring_code:
-  type: datarobotx.idp.common.archive_dataset.ArchiveDataset
-  filepath: data/outputs/scoring_code.tar.gz
+# deploy_forecast.scoring_code:
+#   type: datarobotx.idp.common.archive_dataset.ArchiveDataset
+#   filepath: data/outputs/scoring_code.tar.gz
 
 deploy_forecast.preprocessed_timeseries_data_id:
   type: text.TextDataset
   filepath: data/outputs/preprocessed_timeseries_data_id.txt
 
-time_series_data:
-  type: pandas.CSVDataset
-  filepath: data/outputs/time_series_data.csv
+# time_series_data:
+#   type: pandas.CSVDataset
+#   filepath: data/outputs/time_series_data.csv
 
 project_id:
   type: text.TextDataset
@@ -41,21 +39,21 @@ project_id:
 #  before other nodes in the pipeline.
 
 
-metadata_id:
-  type: text.TextDataset
-  filepath: data/outputs/metadataset_id.txt
+# metadata_id:
+#   type: text.TextDataset
+#   filepath: data/outputs/metadataset_id.txt
 
-raw_time_series_data_id:
-  type: text.TextDataset
-  filepath: data/outputs/raw_time_series_data_id.txt
+# raw_time_series_data_id:
+#   type: text.TextDataset
+#   filepath: data/outputs/raw_time_series_data_id.txt
 
-use_case_id:
-  type: text.TextDataset
-  filepath: data/outputs/use_case_id.txt
+# use_case_id:
+#   type: text.TextDataset
+#   filepath: data/outputs/use_case_id.txt
 
-scoring_data:
-  type: pandas.CSVDataset
-  filepath: data/outputs/scoring_data.csv
+# scoring_data:
+#   type: pandas.CSVDataset
+#   filepath: data/outputs/scoring_data.csv
 
 
 # ===========================

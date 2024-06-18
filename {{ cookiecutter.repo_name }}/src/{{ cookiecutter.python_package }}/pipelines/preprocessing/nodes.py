@@ -79,4 +79,30 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str, #TODO: change 
         dataset = dr.Dataset.create_version_from_in_memory_data(modeling_dataset_id, staging_data)
 
     return str(dataset.id)
+
+def remove_old_retraining_data(endpoint: str, 
+                               token: str,
+                               dataset1_name: str,
+                               dataset2_name: str):
+    from logzero import logger
+
+    client = dr.Client(endpoint=endpoint, token=token)
+    datasets_to_check = [dataset1_name, dataset2_name]
+
+    for dataset_name in datasets_to_check:
+        data_id = _check_if_dataset_exists(dataset_name)
+
+        url = f"{endpoint}/datasets/{data_id: str}/versions/"
+        dataset_versions = client.get(url).json()
+
+        logger.info(f"Found {dataset_versions['count']} versions of {data_id: str}")
+
+        if dataset_versions['count'] > 75:
+            sorted_versions = sorted(dataset_versions['data'], key=lambda x: pd.to_datetime(x['creationDate']))
+            for version in sorted_versions[:-50]:
+                url = f"{endpoint}/datasets/{data_id: str}/versions/{version['versionId']}"
+                client.delete(url)
+            logger.info(f"Deleted {dataset_versions['count'] - 50} versions of {data_id: str}")
+
+    
     

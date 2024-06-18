@@ -163,26 +163,6 @@ def update_or_create_metadataset(
     
     # return str(dataset.id)
 
-def _find_existing_dataset(
-    timeout_secs: int, dataset_name: str, use_cases: Optional[UseCaseLike] = None
-) -> str:
-    for dataset in Dataset.list(use_cases=use_cases):
-        if dataset_name in dataset.name:
-            waited_secs = 0
-            while True:
-                status = Dataset.get(dataset.id).processing_state
-                if status == "COMPLETED":
-                    return str(dataset.id)
-                elif status == "ERROR":
-                    break
-                elif waited_secs > timeout_secs:
-                    raise TimeoutError("Timed out waiting for dataset to process.")
-                time.sleep(3)
-                waited_secs += 3
-
-    raise KeyError("No matching dataset found")
-
-
 def create_modeling_dataset(combined_dataset_name: str, #TODO: change 'combined' to modeling or something
                                  metadataset_id: str, 
                                  timeseries_data: pd.DataFrame,

@@ -59,10 +59,10 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str,
         )
         dataset.modify(name=f"{modeling_dataset_name}")
         modeling_dataset_id = dataset.id
-    
-    current_modeling_data = dr.Dataset.get(modeling_dataset_id).get_as_dataframe()
-
-    staging_data = pd.concat([current_modeling_data, new_data]).reset_index(drop=True)
+        staging_data = dataset.get_as_dataframe()
+    else:     
+        current_modeling_data = dr.Dataset.get(modeling_dataset_id).get_as_dataframe()
+        staging_data = pd.concat([current_modeling_data, new_data]).reset_index(drop=True)
 
     # Calculate the difference in viewCount from the previous hour for each entry
     #   for the first entry, it remains 0
@@ -79,7 +79,7 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str,
 
     staging_data.fillna(0, inplace=True)
 
-    staging_data = staging_data["viewDiff"].apply(lambda x: max(x, 0))
+    staging_data["viewDiff"] = staging_data["viewDiff"].apply(lambda x: max(x, 0))
 
     dataset = dr.Dataset.create_version_from_in_memory_data(modeling_dataset_id, staging_data)
 

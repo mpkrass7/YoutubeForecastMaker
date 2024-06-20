@@ -78,6 +78,8 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str, #TODO: change 
 
         staging_data.fillna(0, inplace=True)
 
+        staging_data = staging_data["viewDiff"].apply(lambda x: max(x, 0))
+
         dataset = dr.Dataset.create_version_from_in_memory_data(modeling_dataset_id, staging_data)
 
     return str(dataset.id)

@@ -7,10 +7,13 @@
 
 from kedro.pipeline import node, Pipeline
 from kedro.pipeline.modular_pipeline import pipeline
-from .nodes import get_or_create_execution_environment_version_with_secrets
 from datarobotx.idp.custom_applications import get_replace_or_create_custom_app_from_env
 from datarobotx.idp.execution_environments import get_or_create_execution_environment
-from .nodes import log_outputs, prepare_yaml_content, make_app_assets
+from .nodes import (log_outputs, 
+                    prepare_yaml_content, 
+                    make_app_assets,
+                    get_or_create_execution_environment_version_with_secrets,
+                    get_dataset_id)
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
@@ -24,6 +27,14 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "use_cases": "params:environment_use_cases",
             },
             outputs="app_execution_environment_id",
+        ),
+        node(
+            name="get_scoring_dataset_id",
+            func=get_dataset_id,
+            inputs={
+                "dataset_name": "params:scoring_dataset_name"
+            },
+            outputs="scoring_data_id"
         ),
         node(
             name="make_app_execution_environment_version",
@@ -68,24 +79,24 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs=None,
         ),
         node(
-        name="make_app_parameters",
-        func=prepare_yaml_content,
-        inputs={
-            "deployment_id": "deployment_id",
-            "page_title": "params:page_title",
-            "graph_y_axis": "params:graph_y_axis",
-            "lower_bound_forecast_at_0": "params:lower_bound_forecast_at_0",
-            "headline_prompt": "params:headline.prompt",
-            "headline_temperature": "params:headline.temperature",
-            "analysis_temperature": "params:analysis.temperature",
-            "model_name": "params:credentials.azure_openai_llm_credentials.deployment_name",
-            "target": "params:project.analyze_and_model_config.target",
-            "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
-            "multiseries_id_column": "params:project.datetime_partitioning_config.multiseries_id_columns",
-            "prediction_interval": "params:deployment.prediction_interval",
-            "scoring_data": "preprocessed_timeseries_data_id"
-        },
-        outputs="app_parameters",
+            name="make_app_parameters",
+            func=prepare_yaml_content,
+            inputs={
+                "deployment_id": "deployment_id",
+                "page_title": "params:page_title",
+                "graph_y_axis": "params:graph_y_axis",
+                "lower_bound_forecast_at_0": "params:lower_bound_forecast_at_0",
+                "headline_prompt": "params:headline.prompt",
+                "headline_temperature": "params:headline.temperature",
+                "analysis_temperature": "params:analysis.temperature",
+                "model_name": "params:credentials.azure_openai_llm_credentials.deployment_name",
+                "target": "params:project.analyze_and_model_config.target",
+                "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
+                "multiseries_id_column": "params:project.datetime_partitioning_config.multiseries_id_columns",
+                "prediction_interval": "params:deployment.prediction_interval",
+                "scoring_data": "scoring_data_id"
+            },
+            outputs="app_parameters",
         ),
         node(
             name="make_app_assets",
@@ -100,7 +111,6 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "style_css": "app_style",
                 "config_toml": "app_config",
                 "secrets_toml": "app_secrets",
-                "scoring_data": "scoring_data_id",
             },
             outputs="app_assets",
         ),
@@ -127,6 +137,5 @@ def create_pipeline(**kwargs) -> Pipeline:
             "project_id",
             "recommended_model_id",
             "deployment_id",
-            "scoring_data_id",
         },
     )

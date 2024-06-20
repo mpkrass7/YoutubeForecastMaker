@@ -54,6 +54,7 @@ deploy_forecast:
     prediction_interval: 80
 
 deploy_streamlit_app:
+  scoring_dataset_name: {{ cookiecutter.project_name }} Scoring Data
   custom_app_name: {{ cookiecutter.project_name }} Streamlit
   environment_name: {{ cookiecutter.project_name }} Streamlit Environment
   environment_use_cases:

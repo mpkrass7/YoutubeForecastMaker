@@ -9,10 +9,10 @@ from __future__ import annotations
 from typing import Any, Dict, List, TYPE_CHECKING, Union
 
 import tempfile
+import datarobot as dr
 
 if TYPE_CHECKING:
     import pathlib
-
 
 def prepare_yaml_content(*args: Any, **kwargs: Any) -> Union[Dict[str, Any], List[Any]]:
     """Passthrough node for gathering content to be serialized to yaml from upstream node(s).
@@ -35,6 +35,22 @@ def prepare_yaml_content(*args: Any, **kwargs: Any) -> Union[Dict[str, Any], Lis
         return list(args)
     else:
         return kwargs
+    
+def get_dataset_id(dataset_name: str) -> Union[str, None]:
+    """Retrieve the ID of the dataset
+
+    Parameters
+    ----------
+    dataset_name : str
+    
+    Returns
+    -------
+    str:
+        The ID of the scoring dataset
+    """
+    datasets = dr.Dataset.list()
+    return next((dataset.id for dataset in datasets if dataset.name == dataset_name), None)
+
 
 
 def get_or_create_execution_environment_version_with_secrets(
@@ -154,7 +170,6 @@ def make_app_assets(
     style_css: str,
     config_toml: str,
     secrets_toml: str,
-    scoring_data: str,
 ) -> tempfile.TemporaryDirectory:
     """Assemble directory of streamlit assets to be uploaded for a new DR execution environment.
 
@@ -178,8 +193,6 @@ def make_app_assets(
         config.toml contents to be included in execution environment
     secrets_toml : str
         secrets.toml contents to be included in execution environment
-    scoring_data : str
-        Scoring dataset ID to be included in execution environment
 
     Returns
     -------

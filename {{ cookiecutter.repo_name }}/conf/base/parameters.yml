@@ -23,6 +23,7 @@ preprocessing:
   timeseries_dataset_name: {{ cookiecutter.project_name }} Raw Time Series Data
   metadataset_name: {{ cookiecutter.project_name }} Meta Data
   modeling_dataset_name: {{ cookiecutter.project_name }} Modeling Data
+  scoring_dataset_name: {{ cookiecutter.project_name }} Scoring Data
 
 deploy_forecast:
   use_case:
@@ -57,7 +58,7 @@ deploy_streamlit_app:
   environment_name: {{ cookiecutter.project_name }} Streamlit Environment
   environment_use_cases:
     - customApplication
-  page_title: Daftpunk Music Video Conversation
+  page_title: Music Video Forecast
   graph_y_axis: Increase in Views
   lower_bound_forecast_at_0: True
   headline:

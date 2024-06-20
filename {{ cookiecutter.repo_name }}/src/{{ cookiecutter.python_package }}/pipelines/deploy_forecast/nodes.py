@@ -127,7 +127,7 @@ def ensure_deployment_settings(
     endpoint: str,
     token: str,
     deployment_id: str,
-    prediction_interval: int
+    prediction_interval: int,
 ) -> None:
     """Ensure deployment settings are properly configured.
     
@@ -145,7 +145,6 @@ def ensure_deployment_settings(
     deployment.update_predictions_data_collection_settings(enabled=True)
     deployment.update_drift_tracking_settings(target_drift_enabled=True)
 
-    # TODO: Scoring data should have association_id
     deployment.update_association_id_settings(
         column_names=["association_id"], required_in_prediction_requests=True
     )

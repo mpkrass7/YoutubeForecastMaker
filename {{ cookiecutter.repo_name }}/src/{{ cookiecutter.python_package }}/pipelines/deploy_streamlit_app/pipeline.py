@@ -100,7 +100,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "style_css": "app_style",
                 "config_toml": "app_config",
                 "secrets_toml": "app_secrets",
-                "scoring_data": "preprocessed_timeseries_data_id",
+                "scoring_data": "scoring_data_id",
             },
             outputs="app_assets",
         ),
@@ -127,6 +127,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             "project_id",
             "recommended_model_id",
             "deployment_id",
-            "preprocessed_timeseries_data_id",
+            "scoring_data_id",
         },
     )

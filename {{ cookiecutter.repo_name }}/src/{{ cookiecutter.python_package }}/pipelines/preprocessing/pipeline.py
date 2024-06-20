@@ -10,7 +10,8 @@ from datarobotx.idp.use_cases import get_or_create_use_case
 
 from .nodes import (
                 create_or_update_modeling_dataset,
-                remove_old_retraining_data
+                remove_old_retraining_data,
+                create_or_update_scoring_dataset
                 )
 
 
@@ -35,7 +36,17 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "timeseries_data_name": "params:timeseries_dataset_name",
                 "use_cases": "use_case_id",
             },
-            outputs=None,
+            outputs="modeling_dataset_id",
+        ),
+        node(
+            name="scoring_data_update",
+            func=create_or_update_scoring_dataset,
+            inputs={
+                "scoring_dataset_name": "params:scoring_dataset_name",
+                "modeling_dataset_id": "modeling_dataset_id",
+                "use_cases": "use_case_id"
+            },
+            outputs="scoring_data_id"
         ),
         node(
             name="data_versioning_overflow_mitigation",
@@ -57,4 +68,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
         },
+        outputs={
+            "scoring_data_id"
+        }
     )

@@ -22,10 +22,10 @@ def _check_if_dataset_exists(name: str) -> Union[str, None]:
     return next((dataset.id for dataset in datasets if dataset.name == name), None)
 
 
-def create_or_update_modeling_dataset(modeling_dataset_name: str, #TODO: change 'modeling' to modeling or something
+def create_or_update_modeling_dataset(modeling_dataset_name: str, 
                                  metadataset_name: str, 
                                  timeseries_data_name: str,
-                                 use_cases: Optional[UseCaseLike] = None) -> None:
+                                 use_cases: Optional[UseCaseLike] = None) -> str:
     """Prepare a dataset for modeling in DataRobot.
     
     Parameters
@@ -58,31 +58,74 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str, #TODO: change 
             data_frame=new_data, use_cases=use_cases
         )
         dataset.modify(name=f"{modeling_dataset_name}")
-    else:
-        current_modeling_data = dr.Dataset.get(modeling_dataset_id).get_as_dataframe()
+        modeling_dataset_id = dataset.id
+    
+    current_modeling_data = dr.Dataset.get(modeling_dataset_id).get_as_dataframe()
 
-        staging_data = pd.concat([current_modeling_data, new_data]).reset_index(drop=True)
+    staging_data = pd.concat([current_modeling_data, new_data]).reset_index(drop=True)
 
-        # Calculate the difference in viewCount from the previous hour for each entry
-        #   for the first entry, it remains 0
-        staging_data['as_of_datetime'] = pd.to_datetime(staging_data['as_of_datetime'], errors='coerce')
-        staging_data = staging_data.sort_values(['video_id', 'as_of_datetime'])
+    # Calculate the difference in viewCount from the previous hour for each entry
+    #   for the first entry, it remains 0
+    staging_data['as_of_datetime'] = pd.to_datetime(staging_data['as_of_datetime'], errors='coerce')
+    staging_data = staging_data.sort_values(['video_id', 'as_of_datetime'])
 
-        staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()
-        staging_data['likeDiff'] = staging_data.groupby('video_id')['likeCount'].diff()
-        staging_data['commentDiff'] = staging_data.groupby('video_id')['commentCount'].diff()
+    staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()
+    staging_data['likeDiff'] = staging_data.groupby('video_id')['likeCount'].diff()
+    staging_data['commentDiff'] = staging_data.groupby('video_id')['commentCount'].diff()
 
-        staging_data = staging_data.drop_duplicates(subset=["video_id", "viewCount", "as_of_datetime"])
+    staging_data = staging_data.drop_duplicates(subset=["video_id", "viewCount", "as_of_datetime"])
 
-        staging_data = staging_data.groupby('video_id').apply(lambda group: group.iloc[::3]).reset_index(drop=True)
+    staging_data = staging_data.groupby('video_id').apply(lambda group: group.iloc[::3]).reset_index(drop=True)
 
-        staging_data.fillna(0, inplace=True)
+    staging_data.fillna(0, inplace=True)
 
-        staging_data = staging_data["viewDiff"].apply(lambda x: max(x, 0))
+    staging_data = staging_data["viewDiff"].apply(lambda x: max(x, 0))
 
-        dataset = dr.Dataset.create_version_from_in_memory_data(modeling_dataset_id, staging_data)
+    dataset = dr.Dataset.create_version_from_in_memory_data(modeling_dataset_id, staging_data)
 
     return str(dataset.id)
+
+# TODO: Scoring data should have association_id
+# Series (music video id) and the date--
+# Scoring data is all historical data, 
+#   known in advance 
+#   future stuff is stacked, so would have to make another dataset
+#   
+# not sure I totally understand how the model uses this to know how the model is doing...
+# does it score the predictions in the scoring dataset?
+# 1. add "known_in_advance"
+# How many rows would I add?
+def create_or_update_scoring_dataset(scoring_dataset_name: str,
+                                    modeling_dataset_id: str,
+                                    use_cases: Optional[UseCaseLike] = None) -> None:
+    """Prepare a dataset for making/scoring in DataRobot.
+    
+    Parameters
+    ----------
+    scoring_dataset_name : pd.DataFrame
+        The raw metadata dataset to combine with timeseries data for modeling
+    modeling_dataset_id: str
+        The ID of the modeling datset which we will turn into the scoring dataset
+    use_cases : UseCaseLike
+        Usually the use case id to further identify dataset
+    Returns
+    -------
+    None
+    """
+    modeling_df = dr.Dataset.get(modeling_dataset_id).get_as_dataframe()
+
+    modeling_df["association_id"] = modeling_df["video_id"] + "-" + modeling_df["as_of_datetime"]
+
+    scoring_dataset_id = _check_if_dataset_exists(scoring_dataset_name)
+
+    if scoring_dataset_id is None:
+        dataset: Dataset = Dataset.create_from_in_memory_data(
+            data_frame=modeling_df, use_cases=use_cases
+        )
+        dataset.modify(name=f"{scoring_dataset_name}")
+    else:
+        dr.Dataset.create_version_from_in_memory_data(scoring_dataset_id, modeling_df)
+
 
 def remove_old_retraining_data(endpoint: str, 
                                token: str,
@@ -95,6 +138,8 @@ def remove_old_retraining_data(endpoint: str,
 
     for dataset_name in datasets_to_check:
         data_id = _check_if_dataset_exists(dataset_name)
+        if data_id is None:
+            continue
 
         url = f"{endpoint}/datasets/{data_id}/versions/"
         dataset_versions = client.get(url).json()

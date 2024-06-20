@@ -101,7 +101,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="deployment_id",
         ),
-        # This is where we'll set up retraining
+        # This is where we'll set up retraining?
         node(
             name="ensure_deployment_settings",
             func=ensure_deployment_settings,

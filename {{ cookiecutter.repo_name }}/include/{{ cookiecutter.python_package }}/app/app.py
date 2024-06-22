@@ -65,7 +65,6 @@ ANALYSIS_TEMPERATURE = params["analysis_temperature"]
 
 if st.session_state.get('scoring_data') is None:
     st.session_state['scoring_data'] = dr.Dataset.get(params["scoring_data"]).get_as_dataframe()
-    st.write("HERE", st.session['scoring_data'].columns, "HERE")
 
 LOGO = "./DataRobot.png"
 
@@ -162,6 +161,7 @@ def createChart(history, forecast, title, date_format="%m/%d/%y"):
         title_text=DATETIME_PARTITION_COLUMN,
         linecolor="#adadad",
     )
+
     fig.update_yaxes(
         color="#404040",
         title_font_size=16,
@@ -272,13 +272,16 @@ def fpa():
                     with explanationContainer:
                         with st.spinner("Generating explanation..."):
                             st.write("**AI Generated Analysis:**")
-                            explanations, explain_df = helpers.get_tldr(
-                                forecast_raw,
-                                TARGET,
-                                CLIENT,
-                                LLM_MODEL_NAME,
-                                temperature=ANALYSIS_TEMPERATURE,
-                            )
+                            try: 
+                                explanations, explain_df = helpers.get_tldr(
+                                    forecast_raw,
+                                    TARGET,
+                                    CLIENT,
+                                    LLM_MODEL_NAME,
+                                    temperature=ANALYSIS_TEMPERATURE,
+                                )
+                            except KeyError:
+                                explanations = "No explanation generated. This may be an issue with the amount of training data provided."
                             st.write(explanations)
                         with st.expander("Raw Explanations", expanded=False):
                             st.write(explain_df)

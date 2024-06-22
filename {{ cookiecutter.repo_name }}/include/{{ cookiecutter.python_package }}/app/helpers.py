@@ -97,8 +97,14 @@ def make_datarobot_deployment_predictions(
 
     # Make API request for predictions
     predictions_response = requests.post(
-        url, data=data.to_json(orient="records"), headers=headers, params=params
+        url, data=data.to_json(orient="records"), headers=headers, params=params # "Prediction Explanations aren't available because the validation partition doesn't contain the required number of rows."
     )
+    # If we run into an issue, explanations may not be available.
+    if predictions_response.status_code == 400:
+        print(predictions_response.text) 
+        predictions_response = requests.post(
+            url, data=data.to_json(orient="records"), headers=headers, params=None
+        )
     # Return a Python dict following the schema in the documentation
     return predictions_response.json()
 
@@ -110,22 +116,34 @@ def process_predictions(
 ) -> pd.DataFrame:
 
     data = predictions["data"]
-    slim_predictions = pd.DataFrame(data)[
-        ["seriesId", "timestamp", "prediction", "predictionExplanations"]
-    ]
-    intervals = pd.DataFrame(
-        [i["predictionIntervals"][prediction_interval] for i in data]
-    )
-    clean_predictions = pd.concat([slim_predictions, intervals], axis=1).drop(
-        columns="predictionExplanations"
-    )
+    if data[0].get("predictionExplanations") is None:
+        slim_predictions = pd.DataFrame(data)[
+            ["seriesId", "timestamp", "prediction"]
+        ]
+        intervals = pd.DataFrame(
+            [i["predictionIntervals"][prediction_interval] for i in data]
+        )
+        clean_predictions = pd.concat([slim_predictions, intervals], axis=1)
 
-    if bound_at_zero:
-        bounds = ["prediction", "low", "high"]
-        clean_predictions[bounds] = clean_predictions[bounds].clip(lower=0)
+        if bound_at_zero:
+            bounds = ["prediction", "low", "high"]
+            clean_predictions[bounds] = clean_predictions[bounds].clip(lower=0)
+    else:
+        slim_predictions = pd.DataFrame(data)[
+            ["seriesId", "timestamp", "prediction", "predictionExplanations"]
+        ]
+        intervals = pd.DataFrame(
+            [i["predictionIntervals"][prediction_interval] for i in data]
+        )
+        clean_predictions = pd.concat([slim_predictions, intervals], axis=1).drop(
+            columns="predictionExplanations"
+        )
+
+        if bound_at_zero:
+            bounds = ["prediction", "low", "high"]
+            clean_predictions[bounds] = clean_predictions[bounds].clip(lower=0)
 
     return clean_predictions
-
 
 def get_prompt(
     prediction_explanations_df: pd.DataFrame,
@@ -195,6 +213,9 @@ def get_tldr(
 ) -> Tuple[str, pd.DataFrame]:
     """Get a natural langauge tldr of what the pred expls say about a TS forecast."""
     df = pd.DataFrame(preds_json["data"])
+
+    if "predictionExplanations" not in df.columns:
+        raise KeyError
 
     target_df = pd.DataFrame(
         [

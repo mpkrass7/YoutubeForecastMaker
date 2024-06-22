@@ -16,4 +16,4 @@ rm -Rf "$1-old"
 echo $(pwd)
 
 cd "$1"
-kedro run -p "data_prep"
+kedro run

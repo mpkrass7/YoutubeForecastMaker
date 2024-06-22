@@ -65,6 +65,7 @@ ANALYSIS_TEMPERATURE = params["analysis_temperature"]
 
 if st.session_state.get('scoring_data') is None:
     st.session_state['scoring_data'] = dr.Dataset.get(params["scoring_data"]).get_as_dataframe()
+    st.write("HERE", st.session['scoring_data'].columns, "HERE")
 
 LOGO = "./DataRobot.png"
 

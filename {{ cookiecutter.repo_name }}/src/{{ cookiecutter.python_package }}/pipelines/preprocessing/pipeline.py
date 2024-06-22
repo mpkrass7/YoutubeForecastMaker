@@ -46,7 +46,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "modeling_dataset_id": "modeling_dataset_id",
                 "use_cases": "use_case_id"
             },
-            outputs="scoring_data_id"
+            outputs=None
         ),
         node(
             name="data_versioning_overflow_mitigation",
@@ -68,7 +68,4 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
         },
-        outputs={
-            "scoring_data_id"
-        }
     )

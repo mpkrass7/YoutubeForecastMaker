@@ -101,7 +101,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="deployment_id",
         ),
-        # This is where we'll set up retraining?
         node(
             name="ensure_deployment_settings",
             func=ensure_deployment_settings,
@@ -110,6 +109,8 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "token": "params:credentials.datarobot.api_token",
                 "deployment_id": "deployment_id",
                 "prediction_interval": "params:deployment.prediction_interval",
+                "dataset_id": "preprocessed_timeseries_data_id",
+                
             },
             outputs=None,
         ),

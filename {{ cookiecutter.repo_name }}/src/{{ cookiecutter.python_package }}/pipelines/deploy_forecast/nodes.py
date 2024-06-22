@@ -128,6 +128,9 @@ def ensure_deployment_settings(
     token: str,
     deployment_id: str,
     prediction_interval: int,
+    dataset_id: str,
+    prediction_environment_id: str = None,
+    credential_id: str = None,
 ) -> None:
     """Ensure deployment settings are properly configured.
     
@@ -139,7 +142,7 @@ def ensure_deployment_settings(
     """
     import datarobot as dr
 
-    dr.Client(endpoint=endpoint, token=token)
+    client = dr.Client(endpoint=endpoint, token=token)
 
     deployment = dr.Deployment.get(deployment_id)
     deployment.update_predictions_data_collection_settings(enabled=True)
@@ -149,3 +152,37 @@ def ensure_deployment_settings(
         column_names=["association_id"], required_in_prediction_requests=True
     )
     deployment.update_prediction_intervals_settings(percentiles=[prediction_interval])
+
+    if prediction_environment_id is None:
+        prediction_environment_id = deployment.prediction_environment["id"] 
+
+    user_id = deployment.owners["preview"][0]["id"]  # type: ignore
+
+    client.patch(f"deployments/{deployment_id}/settings",
+                 json={
+                     "automaticActuals": True
+                 })
+    
+    # set up retraining
+    try:
+        retraining_settings = client.get(
+            f"deployments/{deployment.id}/retrainingSettings"
+        ).json()
+        if (
+            retraining_settings["retrainingUser"]["id"] == user_id
+            and retraining_settings["dataset"]["id"] == dataset_id
+            and retraining_settings["predictionEnvironment"]["id"]
+            == prediction_environment_id
+        ):
+            return
+    except:
+        pass
+    client.patch(
+        f"deployments/{deployment_id}/retrainingSettings",
+        json={
+            "datasetId": dataset_id,
+            "credentialId": credential_id,
+            "predictionEnvironmentId": prediction_environment_id,
+            "retrainingUserId": user_id,
+        },
+    )

@@ -266,8 +266,8 @@ def fpa():
                     with videoContainer:
                         with st.spinner("Retrieving Youtube Media..."):
                             video_id = df.loc[df[MULTISERIES_ID_COLUMN] == series]["video_id"].reset_index(drop=True)[0]
-                            url = f"https://www.youtube.com/watch?v={video_id}&list=PLSdoVPM5WnndSQEXRz704yQkKwx76GvPV&index=11"
-                            st.video(data=url, autoplay=True)
+                            url = f"https://www.youtube.com/watch?v={video_id}"                            
+                            st.video(data=url)
 
                     with explanationContainer:
                         with st.spinner("Generating explanation..."):
@@ -282,6 +282,7 @@ def fpa():
                                 )
                             except KeyError:
                                 explanations = "No explanation generated. This may be an issue with the amount of training data provided."
+                                explain_df = None
                             st.write(explanations)
                         with st.expander("Raw Explanations", expanded=False):
                             st.write(explain_df)

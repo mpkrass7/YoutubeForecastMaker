@@ -10,9 +10,13 @@ import subprocess
 import shutil
 from pathlib import Path
 import stat
-import yaml
 
 import datarobot as dr
+
+from ruamel.yaml import YAML
+from ruamel.yaml.comments import CommentedMap
+
+yaml = YAML()
 
 def remove_readonly(func, path, excinfo):
     """Handle windows permission error.
@@ -48,7 +52,10 @@ usecase_name = dr.UseCase.get(os.environ['DATAROBOT_DEFAULT_USE_CASE']).name
 print("Updating parameters.yml")
 file_path = 'conf/base/parameters.yml'
 with open(file_path, 'r') as file:
-    yaml_content = yaml.safe_load(file)
+    yaml_content = yaml.load(file)
+
+if not isinstance(yaml_content, CommentedMap):
+    yaml_content = CommentedMap(yaml_content)
 
 yaml_content['get_data_pipeline']['use_case']['name'] = usecase_name
 yaml_content['get_data_pipeline']['timeseries_dataset_name'] = usecase_name + ' Raw Time Series Data'
@@ -71,7 +78,7 @@ with open(file_path, 'w') as file:
 
 file_path = 'conf/local/credentials.yml'
 with open(file_path, 'r') as file:
-    yaml_content = yaml.safe_load(file)
+    yaml_content = yaml.load(file)
 
 try:
     yaml_content['datarobot']['endpoint'] = os.environ['DATAROBOT_ENDPOINT']
@@ -80,7 +87,7 @@ except KeyError:
 
 try:
     prediction_server = dr.PredictionServer.list()[0]
-    yaml_content['datarobot']['default_prediction_server_id'] = prediction_server
+    yaml_content['datarobot']['default_prediction_server_id'] = prediction_server['id']
 except:
     pass
 

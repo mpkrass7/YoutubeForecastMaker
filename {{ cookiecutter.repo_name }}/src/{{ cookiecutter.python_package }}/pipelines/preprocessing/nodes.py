@@ -75,16 +75,6 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str,
 
     return str(dataset.id)
 
-# TODO: Scoring data should have association_id
-# Series (music video id) and the date--
-# Scoring data is all historical data, 
-#   known in advance 
-#   future stuff is stacked, so would have to make another dataset
-#   
-# not sure I totally understand how the model uses this to know how the model is doing...
-# does it score the predictions in the scoring dataset?
-# 1. add "known_in_advance"
-# How many rows would I add?
 def create_or_update_scoring_dataset(scoring_dataset_name: str,
                                     modeling_dataset_id: str,
                                     use_cases: Optional[UseCaseLike] = None) -> None:

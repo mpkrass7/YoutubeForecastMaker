@@ -14,7 +14,6 @@ from datarobot.models.use_cases.utils import UseCaseLike
 from datarobotx.idp.common.hashing import get_hash
 import time
 
-# TODO: How in-depth do these docstrings need to be?
 def get_videos(playlist_ids: List[str], api_key: str) -> List[str]:
     """
     Pull all the video ids from a playlist
@@ -32,8 +31,7 @@ def _pull_video_data(video_id: str, api_key: str) -> Dict[str, Any]:
     """
     Pulls data from the Youtube API for a given video id
     """
-
-    import requests #TODO: should I do "from requests import get" instead?
+    import requests
 
     request_header = "https://www.googleapis.com/youtube/v3/videos?id={}&key={}&fields=items(id,snippet(publishedAt,channelId,title,description,categoryId,channelTitle, tags),statistics(viewCount,likeCount,commentCount),contentDetails,status)&part=snippet,statistics,contentDetails,Status"
     data = requests.get(request_header.format(video_id, api_key)).json()
@@ -82,6 +80,8 @@ def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
     # It's important to ensure consistency by adding in a timezone.
     timezone = pytz.timezone('America/New_York')
     current_time = pd.to_datetime(datetime.now(tz=timezone).strftime('%Y-%m-%d %H:%M:%S'))
+
+    # Rounding timestamp to nearest half/full hour
     minutes = current_time.minute
     if minutes < 15:
         current_time = current_time.replace(minute=0, second=0, microsecond=0)
@@ -169,57 +169,3 @@ def update_or_create_metadataset(
         dataset.modify(name=f"{name}")        
     
     # return str(dataset.id)
-
-def create_modeling_dataset(combined_dataset_name: str, #TODO: change 'combined' to modeling or something
-                                 metadataset_id: str, 
-                                 timeseries_data: pd.DataFrame,
-                                 use_cases: Optional[UseCaseLike] = None) -> None:
-    """Prepare a dataset for modeling in DataRobot.
-    
-    Parameters
-    ----------
-    metadata : pd.DataFrame
-        The raw metadata dataset to combine with timeseries data for modeling
-    timeseries_data: pd.DataFrame
-        The raw timeseries dataset to combine with metadata for modeling
-    Returns
-    -------
-    str
-        ID of the dataset prepared for modeling in DataRobot
-    """
-    # TODO: Should it return a dr.Dataset?
-    # TODO: can I join datasets as dr.Datasets?
-    # TODO: Should be uniform in terms of what I pass in for each dataframe (id, id OR name, name)
-    metadata_df = dr.Dataset.get(metadataset_id).get_as_dataframe()
-
-    # Join the metadata and timeseries data on the Video ID
-    new_data = pd.merge(metadata_df, timeseries_data, on="video_id", how="inner").reset_index(drop=True)
-    new_data["viewDiff"] = 0
-    new_data["likeDiff"] = 0
-    new_data["commentDiff"] = 0
-
-    combined_dataset_id = _check_if_dataset_exists(combined_dataset_name)
-
-    # TODO: Should this be idempotent? (use hash?)
-    if combined_dataset_id is None:
-        dataset: Dataset = Dataset.create_from_in_memory_data(
-            data_frame=new_data, use_cases=use_cases
-        )
-        dataset.modify(name=f"{combined_dataset_name}")
-    else:
-        current_modeling_data = dr.Dataset.get(combined_dataset_id).get_as_dataframe()
-
-        staging_data = pd.concat([current_modeling_data, new_data]).reset_index(drop=True)
-
-        # Calculate the difference in viewCount from the previous hour for each entry
-        #   for the first entry, it remains NaN?
-        staging_data['as_of_datetime'] = pd.to_datetime(staging_data['as_of_datetime'], errors='coerce')
-        staging_data = staging_data.sort_values(['video_id', 'as_of_datetime'])
-
-        staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()
-        staging_data['likeDiff'] = staging_data.groupby('video_id')['likeCount'].diff()
-        staging_data['commentDiff'] = staging_data.groupby('video_id')['commentCount'].diff()
-
-        staging_data = staging_data.sort_values(by=["viewCount", "video_id"])
-
-        dr.Dataset.create_version_from_in_memory_data(combined_dataset_id, staging_data)

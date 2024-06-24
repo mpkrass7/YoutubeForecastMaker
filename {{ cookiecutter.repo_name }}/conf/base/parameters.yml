@@ -40,9 +40,10 @@ deploy_forecast:
       datetime_partition_column: as_of_datetime
       multiseries_id_columns: [title]
       use_time_series: True
-      feature_derivation_window_start: -21
+      # Forecast/Feature Derivation Window start/ends must be a multiple of the time step
+      feature_derivation_window_start: -21 
       feature_derivation_window_end: 0
-      forecast_window_start: 3 # Forecast Window start must be a multiple of the time step
+      forecast_window_start: 3 
       forecast_window_end: 12
       # TODO: what other configurations should we add? Should we add and leave empty?
       #   - Known in advance?

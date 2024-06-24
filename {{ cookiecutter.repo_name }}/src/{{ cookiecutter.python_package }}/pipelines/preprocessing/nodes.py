@@ -50,10 +50,23 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str,
     new_data["likeDiff"] = 0
     new_data["commentDiff"] = 0
 
+    def _round_to_nearest_half_hour(time):
+        # Find the number of minutes past the hour
+        minutes = time.minute
+        if minutes < 15:
+            rounded_time = time.replace(minute=0, second=0, microsecond=0)
+        elif minutes < 45:
+            rounded_time = time.replace(minute=30, second=0, microsecond=0)
+        else:
+            rounded_time = (time + pd.Timedelta(minutes=(60 - minutes))).replace(minute=0, second=0, microsecond=0)
+        return rounded_time
+
     modeling_dataset_id = _check_if_dataset_exists(modeling_dataset_name)
 
     # TODO: Should this be idempotent? (use hash?)
     if modeling_dataset_id is None:
+        new_data["as_of_datetime"] = pd.to_datetime(new_data['as_of_datetime'], errors='coerce')
+        new_data["as_of_datetime"] = new_data["as_of_datetime"].apply(_round_to_nearest_half_hour)
         dataset: Dataset = Dataset.create_from_in_memory_data(
             data_frame=new_data, use_cases=use_cases
         )

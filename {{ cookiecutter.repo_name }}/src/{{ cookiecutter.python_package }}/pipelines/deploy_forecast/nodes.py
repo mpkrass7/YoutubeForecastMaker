@@ -158,10 +158,10 @@ def ensure_deployment_settings(
 
     user_id = deployment.owners["preview"][0]["id"]  # type: ignore
 
-    client.patch(f"deployments/{deployment_id}/settings",
-                 json={
-                     "automaticActuals": True
-                 })
+    # client.patch(f"deployments/{deployment_id}/settings",
+    #              json={
+    #                  "automaticActuals": {"enabled": True}
+    #              })
     
     # set up retraining
     try:

@@ -83,13 +83,13 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str,
     staging_data["as_of_datetime"] = staging_data["as_of_datetime"].apply(_round_to_nearest_half_hour)
     staging_data = staging_data.sort_values(['video_id', 'as_of_datetime'])
 
-    staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()
-    staging_data['likeDiff'] = staging_data.groupby('video_id')['likeCount'].diff()
-    staging_data['commentDiff'] = staging_data.groupby('video_id')['commentCount'].diff()
-
     staging_data = staging_data.drop_duplicates(subset=["video_id", "viewCount", "as_of_datetime"])
 
     staging_data = staging_data.groupby('video_id').apply(lambda group: group.iloc[::3]).reset_index(drop=True)
+
+    staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()
+    staging_data['likeDiff'] = staging_data.groupby('video_id')['likeCount'].diff()
+    staging_data['commentDiff'] = staging_data.groupby('video_id')['commentCount'].diff()
 
     staging_data.fillna(0, inplace=True)
 

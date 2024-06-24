@@ -8,7 +8,7 @@
 from __future__ import annotations #Keep at top of file
 
 import time
-from typing import Any, List, TYPE_CHECKING, Union, Optional
+from typing import Any, List, TYPE_CHECKING, Union, Optional, Dict
 
 from datarobot.models.use_cases.utils import UseCaseLike
 from datarobot import Dataset 
@@ -158,10 +158,10 @@ def ensure_deployment_settings(
 
     user_id = deployment.owners["preview"][0]["id"]  # type: ignore
 
-    # client.patch(f"deployments/{deployment_id}/settings",
-    #              json={
-    #                  "automaticActuals": {"enabled": True}
-    #              })
+    client.patch(f"deployments/{deployment_id}/settings",
+                 json={
+                     "automaticActuals": {"enabled": True}
+                 })
     
     # set up retraining
     try:
@@ -186,3 +186,4 @@ def ensure_deployment_settings(
             "retrainingUserId": user_id,
         },
     )
+

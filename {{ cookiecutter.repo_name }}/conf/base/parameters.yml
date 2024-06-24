@@ -54,6 +54,21 @@ deploy_forecast:
     label: {{ cookiecutter.project_name }}
     description: A fantastically generated forecast from Kedro, hurray!
     prediction_interval: 80
+  retraining_policy:
+    autopilotOptions:
+      blendBestModels: false
+      mode: quick
+      shapOnlyMode: false
+    description: Retrain monthly and add best model to challengers
+    name: Retrain Monthly
+    trigger:
+      schedule:
+        dayOfMonth: [1]
+        hour: [0]
+        minute: [0]
+      statusDeclinesToFailing: false
+      statusDeclinesToWarning: false
+      statusStillInDecline: false
 
 deploy_streamlit_app:
   scoring_dataset_name: {{ cookiecutter.project_name }} Scoring Data

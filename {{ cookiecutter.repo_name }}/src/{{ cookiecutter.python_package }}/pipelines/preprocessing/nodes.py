@@ -80,6 +80,7 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str,
     # Calculate the difference in viewCount from the previous hour for each entry
     #   for the first entry, it remains 0
     staging_data['as_of_datetime'] = pd.to_datetime(staging_data['as_of_datetime'], errors='coerce')
+    staging_data["as_of_datetime"] = staging_data["as_of_datetime"].apply(_round_to_nearest_half_hour)
     staging_data = staging_data.sort_values(['video_id', 'as_of_datetime'])
 
     staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()

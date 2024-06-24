@@ -9,7 +9,7 @@
 
 get_data_pipeline:
   use_case:
-    name: {{ cookiecutter.project_name }}
+    name: 
   playlist_ids:
     - 
     -
@@ -19,7 +19,7 @@ get_data_pipeline:
 
 preprocessing:
   use_case:
-    name: {{ cookiecutter.project_name }}
+    name: 
   timeseries_dataset_name: Music Video Raw Time Series Data
   metadataset_name: Music Video Meta Data
   modeling_dataset_name: Music Video Modeling Data
@@ -27,7 +27,7 @@ preprocessing:
 
 deploy_forecast:
   use_case:
-    name: {{ cookiecutter.project_name }}
+    name: 
   dataset_name: Music Video Modeling Data
   project:
     name: {{ cookiecutter.project_name }} Project 
@@ -76,7 +76,7 @@ deploy_streamlit_app:
   environment_name: {{ cookiecutter.project_name }} Streamlit Environment
   environment_use_cases:
     - customApplication
-  page_title: Music Video Forecast
+  page_title: Music Video Forecasting
   graph_y_axis: Increase in Views
   lower_bound_forecast_at_0: True
   headline:

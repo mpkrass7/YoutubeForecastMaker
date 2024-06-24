@@ -80,7 +80,7 @@ except KeyError:
 
 try:
     prediction_server = dr.PredictionServer.list()[0]
-    yaml_content['datarobot']['endpoint'] = os.environ['DATAROBOT_ENDPOINT']
+    yaml_content['datarobot']['endpoint'] = prediction_server
 except:
     pass
 

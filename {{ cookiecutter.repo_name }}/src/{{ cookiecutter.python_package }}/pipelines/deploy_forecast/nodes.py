@@ -163,27 +163,26 @@ def ensure_deployment_settings(
                      "automaticActuals": {"enabled": True}
                  })
     
-    # set up retraining
-    try:
-        retraining_settings = client.get(
-            f"deployments/{deployment.id}/retrainingSettings"
-        ).json()
-        if (
-            retraining_settings["retrainingUser"]["id"] == user_id
-            and retraining_settings["dataset"]["id"] == dataset_id
-            and retraining_settings["predictionEnvironment"]["id"]
-            == prediction_environment_id
-        ):
-            return
-    except:
-        pass
-    client.patch(
-        f"deployments/{deployment_id}/retrainingSettings",
-        json={
-            "datasetId": dataset_id,
-            "credentialId": credential_id,
-            "predictionEnvironmentId": prediction_environment_id,
-            "retrainingUserId": user_id,
-        },
-    )
+    # try:
+    #     retraining_settings = client.get(
+    #         f"deployments/{deployment.id}/retrainingSettings"
+    #     ).json()
+    #     if (
+    #         retraining_settings["retrainingUser"]["id"] == user_id
+    #         and retraining_settings["dataset"]["id"] == dataset_id
+    #         and retraining_settings["predictionEnvironment"]["id"]
+    #         == prediction_environment_id
+    #     ):
+    #         return
+    # except:
+    #     pass
+    # client.patch(
+    #     f"deployments/{deployment_id}/retrainingSettings",
+    #     json={
+    #         "datasetId": dataset_id,
+    #         "credentialId": credential_id,
+    #         "predictionEnvironmentId": prediction_environment_id,
+    #         "retrainingUserId": user_id,
+    #     },
+    # )
 

@@ -45,57 +45,33 @@ def create_or_update_modeling_dataset(modeling_dataset_name: str,
     # Join the metadata and timeseries data on the Video ID
     new_data = pd.merge(metadata_df, raw_ts_data, on="video_id", how="inner").reset_index(drop=True)
 
-    # Add in columns for engineered features
-    new_data["viewDiff"] = 0
-    new_data["likeDiff"] = 0
-    new_data["commentDiff"] = 0
+    # Calculate the difference in viewCount from the previous hour for each entry
+    #   for the first entry, it remains 0
+    new_data['as_of_datetime'] = pd.to_datetime(new_data['as_of_datetime'], errors='coerce')
+    new_data = new_data.sort_values(['video_id', 'as_of_datetime'])
 
-    def _round_to_nearest_half_hour(time):
-        # Find the number of minutes past the hour
-        minutes = time.minute
-        if minutes < 15:
-            rounded_time = time.replace(minute=0, second=0, microsecond=0)
-        elif minutes < 45:
-            rounded_time = time.replace(minute=30, second=0, microsecond=0)
-        else:
-            rounded_time = (time + pd.Timedelta(minutes=(60 - minutes))).replace(minute=0, second=0, microsecond=0)
-        return rounded_time
+    new_data = new_data.drop_duplicates(subset=["video_id", "viewCount", "as_of_datetime"])
 
+    new_data = new_data.groupby('video_id').apply(lambda group: group.iloc[::3]).reset_index(drop=True)
+
+    new_data['viewDiff'] = new_data.groupby('video_id')['viewCount'].diff()
+    new_data['likeDiff'] = new_data.groupby('video_id')['likeCount'].diff()
+    new_data['commentDiff'] = new_data.groupby('video_id')['commentCount'].diff()
+
+    new_data.fillna(0, inplace=True)
+
+    new_data["viewDiff"] = new_data["viewDiff"].apply(lambda x: max(x, 0))
+
+    # If it exists, add a new version, otherwise create it!
     modeling_dataset_id = _check_if_dataset_exists(modeling_dataset_name)
-
-    # TODO: Should this be idempotent? (use hash?)
+   
     if modeling_dataset_id is None:
-        new_data["as_of_datetime"] = pd.to_datetime(new_data['as_of_datetime'], errors='coerce')
-        new_data["as_of_datetime"] = new_data["as_of_datetime"].apply(_round_to_nearest_half_hour)
         dataset: Dataset = Dataset.create_from_in_memory_data(
             data_frame=new_data, use_cases=use_cases
         )
         dataset.modify(name=f"{modeling_dataset_name}")
-        modeling_dataset_id = dataset.id
-        staging_data = dataset.get_as_dataframe()
     else:     
-        current_modeling_data = dr.Dataset.get(modeling_dataset_id).get_as_dataframe()
-        staging_data = pd.concat([current_modeling_data, new_data]).reset_index(drop=True)
-
-    # Calculate the difference in viewCount from the previous hour for each entry
-    #   for the first entry, it remains 0
-    staging_data['as_of_datetime'] = pd.to_datetime(staging_data['as_of_datetime'], errors='coerce')
-    staging_data["as_of_datetime"] = staging_data["as_of_datetime"].apply(_round_to_nearest_half_hour)
-    staging_data = staging_data.sort_values(['video_id', 'as_of_datetime'])
-
-    staging_data = staging_data.drop_duplicates(subset=["video_id", "viewCount", "as_of_datetime"])
-
-    staging_data = staging_data.groupby('video_id').apply(lambda group: group.iloc[::3]).reset_index(drop=True)
-
-    staging_data['viewDiff'] = staging_data.groupby('video_id')['viewCount'].diff()
-    staging_data['likeDiff'] = staging_data.groupby('video_id')['likeCount'].diff()
-    staging_data['commentDiff'] = staging_data.groupby('video_id')['commentCount'].diff()
-
-    staging_data.fillna(0, inplace=True)
-
-    staging_data["viewDiff"] = staging_data["viewDiff"].apply(lambda x: max(x, 0))
-
-    dataset = dr.Dataset.create_version_from_in_memory_data(modeling_dataset_id, staging_data)
+        dataset = dr.Dataset.create_version_from_in_memory_data(modeling_dataset_id, new_data)
 
     return str(dataset.id)
 

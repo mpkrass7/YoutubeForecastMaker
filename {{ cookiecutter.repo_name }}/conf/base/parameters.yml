@@ -9,26 +9,26 @@
 
 get_data_pipeline:
   use_case:
-    name: {{ cookiecutter.project_name }} # TODO: write in README that usecase must be same name as project
+    name: {{ cookiecutter.project_name }}
   playlist_ids:
     - 
     -
-    -
-  timeseries_dataset_name: {{ cookiecutter.project_name }} Raw Time Series Data
-  metadataset_name: {{ cookiecutter.project_name }} Meta Data
+  # Note: if you change any of the dataset names here, make sure they remain the same across all of your codespaces
+  timeseries_dataset_name: Music Video Raw Time Series Data 
+  metadataset_name: Music Video Meta Data
 
 preprocessing:
   use_case:
     name: {{ cookiecutter.project_name }}
-  timeseries_dataset_name: {{ cookiecutter.project_name }} Raw Time Series Data
-  metadataset_name: {{ cookiecutter.project_name }} Meta Data
-  modeling_dataset_name: {{ cookiecutter.project_name }} Modeling Data
-  scoring_dataset_name: {{ cookiecutter.project_name }} Scoring Data
+  timeseries_dataset_name: Music Video Raw Time Series Data
+  metadataset_name: Music Video Meta Data
+  modeling_dataset_name: Music Video Modeling Data
+  scoring_dataset_name: Music Video Scoring Data
 
 deploy_forecast:
   use_case:
     name: {{ cookiecutter.project_name }}
-  dataset_name: {{ cookiecutter.project_name }} Modeling Data
+  dataset_name: Music Video Modeling Data
   project:
     name: {{ cookiecutter.project_name }} Project 
     analyze_and_model_config:
@@ -43,7 +43,7 @@ deploy_forecast:
       feature_derivation_window_start: -21
       feature_derivation_window_end: 0
       forecast_window_start: 3 # Forecast Window start must be a multiple of the time step
-      forecast_window_end: 6
+      forecast_window_end: 12
       # TODO: what other configurations should we add? Should we add and leave empty?
       #   - Known in advance?
     advanced_options_config:
@@ -71,7 +71,7 @@ deploy_forecast:
       statusStillInDecline: false
 
 deploy_streamlit_app:
-  scoring_dataset_name: {{ cookiecutter.project_name }} Scoring Data
+  scoring_dataset_name: Music Video Scoring Data
   custom_app_name: {{ cookiecutter.project_name }} Streamlit
   environment_name: {{ cookiecutter.project_name }} Streamlit Environment
   environment_use_cases:

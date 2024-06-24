@@ -82,6 +82,13 @@ def compile_timeseries_data(videos: List[str], api_key: str) -> pd.DataFrame:
     # It's important to ensure consistency by adding in a timezone.
     timezone = pytz.timezone('America/New_York')
     current_time = datetime.now(tz=timezone).strftime('%Y-%m-%d %H:%M:%S')
+    minutes = current_time.minute
+    if minutes < 15:
+        current_time = time.replace(minute=0, second=0, microsecond=0)
+    elif minutes < 45:
+        current_time = time.replace(minute=30, second=0, microsecond=0)
+    else:
+        current_time = (time + pd.Timedelta(minutes=(60 - minutes))).replace(minute=0, second=0, microsecond=0)
     
     video_statistics = []
     for id in videos:

@@ -68,3 +68,9 @@ There is no need to modify the directions in the next section.
 
 ### Example changes
 We recommend including some examples of changes users can make to this recipe in order to modify or extend its functionality. These changes could be in the parameters.yaml, the catalog.yaml file or in the pipeline itself.
+
+
+data_pull every hour
+set up config file in the usecase
+
+notebook opens the use

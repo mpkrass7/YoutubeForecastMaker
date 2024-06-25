@@ -42,14 +42,10 @@ subprocess.run(
 shutil.copytree("datarobotx-idp/src/datarobotx", "src/datarobotx")
 shutil.rmtree("datarobotx-idp", onerror=remove_readonly)
 
-# Put use case name in the parameters.yml file using default use case id
-#   also fill in all dataset names.
-# Try, Except clauses to fail gracefully
-# Prediction Server ID and Endpoint should get set
-
 usecase_name = dr.UseCase.get(os.environ['DATAROBOT_DEFAULT_USE_CASE']).name
 
 print("Updating parameters.yml")
+
 file_path = 'conf/base/parameters.yml'
 with open(file_path, 'r') as file:
     yaml_content = yaml.load(file)
@@ -87,7 +83,7 @@ except KeyError:
 
 try:
     prediction_server = dr.PredictionServer.list()[0]
-    yaml_content['datarobot']['default_prediction_server_id'] = prediction_server['id']
+    yaml_content['datarobot']['default_prediction_server_id'] = prediction_server.id
 except:
     pass
 

@@ -21,8 +21,8 @@ from datarobotx.idp.registered_model_versions import (
 from datarobotx.idp.use_cases import get_or_create_use_case
 
 from .nodes import (ensure_deployment_settings, 
-                    put_forecast_distance_into_registered_model_name, 
-                    get_modeling_dataset_id)
+                    put_forecast_distance_into_registered_model_name,
+                    find_existing_dataset)
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
@@ -38,7 +38,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         ),
         node(
             name="get_modeling_dataset_id",
-            func=get_modeling_dataset_id,
+            func=find_existing_dataset,
             inputs={
                 "dataset_name": "params:dataset_name",
                 "use_cases": "use_case_id"
@@ -114,6 +114,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs=None,
         ),
+        
     ]
     pipeline_inst = pipeline(nodes)
     return pipeline(

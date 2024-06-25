@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     import datarobot as dr
     import pandas as pd
 
-def _find_existing_dataset(
-    timeout_secs: int, dataset_name: str, use_cases: Optional[UseCaseLike] = None
+def find_existing_dataset(
+    dataset_name: str, use_cases: Optional[UseCaseLike] = None, timeout_secs: int = 60, 
 ) -> str:
     for dataset in Dataset.list(use_cases=use_cases):
         if dataset_name in dataset.name:
@@ -36,34 +36,6 @@ def _find_existing_dataset(
                 waited_secs += 3
 
     raise KeyError("No matching dataset found")
-
-
-def get_modeling_dataset_id(dataset_name: str,
-                                 use_cases: Optional[UseCaseLike] = None) -> str:
-    """Prepare a dataset for modeling in DataRobot.
-    
-    Parameters
-    ----------
-    metadata : pd.DataFrame
-        The raw metadata dataset to combine with timeseries data for modeling
-    timeseries_data: pd.DataFrame
-        The raw timeseries dataset to combine with metadata for modeling
-    target : str
-        The name of the target column
-    datetime_partition_column : str
-        The name of the datetime partition column
-    multiseries_id_columns : List[str]
-        The name of the column that defines the multiseries id.
-        Should be a list with one entry.
-    
-    Returns
-    -------
-    str
-        ID of the dataset prepared for modeling in DataRobot
-    """
-    dataset_id = _find_existing_dataset(timeout_secs=30, dataset_name=dataset_name, use_cases=use_cases)
-
-    return dataset_id
 
 def put_forecast_distance_into_registered_model_name(registered_model_name: str, forecast_window_start: str, forecast_window_end: str) -> str:
     """Get or create a registered model for the time series model.
@@ -92,45 +64,12 @@ def put_forecast_distance_into_registered_model_name(registered_model_name: str,
         ")"
         )
 
-
-def get_scoring_code(project_id: str, model_id: str) -> tempfile.TemporaryDirectory:
-    """Get scoring code from a model
-
-    Parameters
-    ----------
-    project_id : str
-        The project id of a DataRobot automl project
-    model_id : str
-        The model id of a model in the project
-
-    Returns
-    -------
-    tempfile.TemporaryDirectory
-        A temporary directory containing the scoring code .jar file
-    """
-
-    import os
-
-    import datarobot as dr
-    
-    d = tempfile.TemporaryDirectory()
-    path_to_d = d.name
-
-    model = dr.Model.get(project_id, model_id)
-
-    model.download_scoring_code(file_name=os.path.join(path_to_d, "scoring_code.jar"))
-
-    return d
-
-
 def ensure_deployment_settings(
     endpoint: str,
     token: str,
     deployment_id: str,
     prediction_interval: int,
-    dataset_id: str,
     prediction_environment_id: str = None,
-    credential_id: str = None,
 ) -> None:
     """Ensure deployment settings are properly configured.
     
@@ -156,33 +95,7 @@ def ensure_deployment_settings(
     if prediction_environment_id is None:
         prediction_environment_id = deployment.prediction_environment["id"] 
 
-    user_id = deployment.owners["preview"][0]["id"]  # type: ignore
-
     client.patch(f"deployments/{deployment_id}/settings",
                  json={
                      "automaticActuals": {"enabled": True}
                  })
-    
-    # try:
-    #     retraining_settings = client.get(
-    #         f"deployments/{deployment.id}/retrainingSettings"
-    #     ).json()
-    #     if (
-    #         retraining_settings["retrainingUser"]["id"] == user_id
-    #         and retraining_settings["dataset"]["id"] == dataset_id
-    #         and retraining_settings["predictionEnvironment"]["id"]
-    #         == prediction_environment_id
-    #     ):
-    #         return
-    # except:
-    #     pass
-    # client.patch(
-    #     f"deployments/{deployment_id}/retrainingSettings",
-    #     json={
-    #         "datasetId": dataset_id,
-    #         "credentialId": credential_id,
-    #         "predictionEnvironmentId": prediction_environment_id,
-    #         "retrainingUserId": user_id,
-    #     },
-    # )
-

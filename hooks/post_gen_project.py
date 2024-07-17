@@ -25,7 +25,6 @@ def remove_readonly(func, path, excinfo):
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
-DATAROBOTX_IDP_VERSION = "{{ cookiecutter.datarobotx_idp_version }}"
 
 print("Copying latest datarobotx-idp source into project..\n")
 subprocess.run(
@@ -33,7 +32,7 @@ subprocess.run(
         "git",
         "clone",
         "--branch",
-        DATAROBOTX_IDP_VERSION,
+        "main",
         "https://github.com/datarobot-community/datarobotx-idp.git",
     ],
     check=True,

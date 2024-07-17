@@ -8,7 +8,6 @@
 import os
 import subprocess
 import shutil
-from pathlib import Path
 import stat
 
 import datarobot as dr
@@ -42,7 +41,11 @@ subprocess.run(
 shutil.copytree("datarobotx-idp/src/datarobotx", "src/datarobotx")
 shutil.rmtree("datarobotx-idp", onerror=remove_readonly)
 
-usecase_name = dr.UseCase.get(os.environ['DATAROBOT_DEFAULT_USE_CASE']).name
+try: 
+    usecase_name = dr.UseCase.get(os.environ['DATAROBOT_DEFAULT_USE_CASE']).name
+except KeyError:
+    print("Detected local creation. Usecase name will be your selected project name.")
+    usecase_name = "{{ cookiecutter.project_name }}"
 
 print("Updating parameters.yml")
 

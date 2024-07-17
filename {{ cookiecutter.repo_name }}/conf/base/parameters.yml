@@ -28,7 +28,7 @@ preprocessing:
 deploy_forecast:
   use_case:
     name: 
-  dataset_name: Music Video Modeling Data
+  dataset_name: Music Video Scoring Data
   project:
     name: {{ cookiecutter.project_name }} Project 
     analyze_and_model_config:
@@ -44,7 +44,7 @@ deploy_forecast:
       feature_derivation_window_start: -21 
       feature_derivation_window_end: 0
       forecast_window_start: 3 
-      forecast_window_end: 12
+      forecast_window_end: 36
       # TODO: what other configurations should we add? Should we add and leave empty?
       #   - Known in advance?
     advanced_options_config:
@@ -55,21 +55,32 @@ deploy_forecast:
     label: {{ cookiecutter.project_name }}
     description: A fantastically generated forecast from Kedro, hurray!
     prediction_interval: 80
+    association_id_column_name: "association_id"
   retraining_policy:
-    autopilotOptions:
-      blendBestModels: false
-      mode: quick
-      shapOnlyMode: false
-    description: Retrain monthly and add best model to challengers
-    name: Retrain Monthly
-    trigger:
-      schedule:
-        dayOfMonth: [1]
-        hour: [0]
-        minute: [0]
-      statusDeclinesToFailing: false
-      statusDeclinesToWarning: false
-      statusStillInDecline: false
+    name: Retrain on Accuracy Decline
+    kwargs:
+      autopilotOptions:
+        blendBestModels: false
+        mode: quick
+        shapOnlyMode: false
+        runLeakageRemovedFeatureList: True
+      trigger:
+        type: accuracy_decline
+        statusDeclinesToWarning: true,
+        statusDeclinesToFailing: false
+        statusStillInDecline: false
+      featureListStrategy: informative_features
+      projectOptionsStrategy: same_as_champion
+      modelSelectionStrategy: autopilot_recommended
+    action: model_replacement
+  batch_prediction_job_definition:
+    batch_prediction_job:
+      intake_settings: 
+        type: dataset
+        dataset: 
+    enabled: True
+    name: Batch Prediction Job for Retraining
+
 
 deploy_streamlit_app:
   scoring_dataset_name: Music Video Scoring Data
@@ -83,7 +94,7 @@ deploy_streamlit_app:
   headline:
     temperature: 0.2
     prompt: |
-      You are a data analyst. Explain to non-technical executives business leaders what this data suggests.
+      You are a data analyst. Explain to non-technical clients what this data suggests.
       Executive leadership will provide a forecast and you will interpret it and summarize the outlook, highlighting key insights.                         
       Your response should be only 1 sentence long, not very wordy. It should be like a news headline. Do not put quotation marks around it.
       Your response, while insightful, should speak to the general direction of the forecast.

@@ -19,10 +19,13 @@ from datarobotx.idp.registered_model_versions import (
     get_or_create_registered_leaderboard_model_version,
 )
 from datarobotx.idp.use_cases import get_or_create_use_case
+from datarobotx.idp.retraining_policies import update_or_create_retraining_policy
 
 from .nodes import (ensure_deployment_settings, 
                     put_forecast_distance_into_registered_model_name,
-                    find_existing_dataset)
+                    find_existing_dataset,
+                    get_date_format,
+                    setup_batch_prediction_job_definition)
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
@@ -102,19 +105,57 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs="deployment_id",
         ),
         node(
+            name="get_date_format",
+            func=get_date_format,
+            inputs={
+                "endpoint": "params:credentials.datarobot.endpoint",
+                "token": "params:credentials.datarobot.api_token",
+                "project_id": "project_id",
+            },
+            outputs="date_format",
+        ),
+        node(
             name="ensure_deployment_settings",
             func=ensure_deployment_settings,
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
                 "deployment_id": "deployment_id",
+                "datetime_partitioning_column": "params:project.datetime_partitioning_config.datetime_partition_column",
                 "prediction_interval": "params:deployment.prediction_interval",
                 "dataset_id": "preprocessed_timeseries_data_id",
-                
+                "date_format": "date_format",
+                "association_id": "params:deployment.association_id_column_name"
             },
             outputs=None,
         ),
-        
+        node(
+            name="set_up_batch_prediction_job",
+            func=setup_batch_prediction_job_definition,
+            inputs={
+                "endpoint": "params:credentials.datarobot.endpoint",
+                "token": "params:credentials.datarobot.api_token",
+                "deployment_id": "deployment_id",
+                "dataset_id": "preprocessed_timeseries_data_id",
+                "enabled": "params:batch_prediction_job_definition.enabled",
+                "name": "params:batch_prediction_job_definition.name",
+                "batch_prediction_job": "params:batch_prediction_job_definition.batch_prediction_job"
+            },
+            outputs=None
+        ),
+        node(
+            name="set_up_retraining_job",
+            func=update_or_create_retraining_policy,
+            inputs={
+                "endpoint": "params:credentials.datarobot.endpoint",
+                "token": "params:credentials.datarobot.api_token",
+                "deployment_id": "deployment_id",
+                "name": "params:retraining_policy.name",
+                "dataset_id": "preprocessed_timeseries_data_id",
+                "kwargs": "params:retraining_policy.kwargs"
+            },
+            outputs=None
+        )
     ]
     pipeline_inst = pipeline(nodes)
     return pipeline(

@@ -136,7 +136,7 @@ def log_outputs(
 
     base_url = urljoin(endpoint, "/")
     project_url = base_url + "projects/{project_id}/models/{model_id}/"
-    deployment_url = base_url + "console/{deployment_id}/overview"
+    deployment_url = base_url + "deployments/{deployment_id}/overview"
     application_url = base_url + "custom_applications/{application_id}/"
 
     logger = logging.getLogger(__name__)

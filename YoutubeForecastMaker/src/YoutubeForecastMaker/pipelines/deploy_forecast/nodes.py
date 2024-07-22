@@ -13,7 +13,7 @@ from typing import Any, List, TYPE_CHECKING, Union, Optional, Dict
 from datarobot.models.use_cases.utils import UseCaseLike
 from datarobot import Dataset 
 
-from datarobotx.idp.batch_predictions import update_or_create_batch_prediction_job
+from datarobotx.idp.batch_predictions import get_update_or_create_batch_prediction_job
 
 if TYPE_CHECKING:
     import tempfile
@@ -176,9 +176,10 @@ def setup_batch_prediction_job_definition(
     """
     dr.Client(token=token, endpoint=endpoint)  # type: ignore
 
-    batch_prediction_job["intake_settings"]["dataset"] = dr.Dataset.get(dataset_id=dataset_id)
+    batch_prediction_job["intake_settings"]["datasetId"] = dataset_id
+    batch_prediction_job["deploymentId"] = deployment_id
 
-    update_or_create_batch_prediction_job(endpoint=endpoint,
+    get_update_or_create_batch_prediction_job(endpoint=endpoint,
                                           token=token,
                                           deployment_id=deployment_id,
                                           batch_prediction_job=batch_prediction_job,

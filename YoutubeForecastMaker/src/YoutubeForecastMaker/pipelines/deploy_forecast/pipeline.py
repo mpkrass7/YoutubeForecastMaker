@@ -19,7 +19,7 @@ from datarobotx.idp.registered_model_versions import (
     get_or_create_registered_leaderboard_model_version,
 )
 from datarobotx.idp.use_cases import get_or_create_use_case
-from datarobotx.idp.retraining_policies import update_or_create_retraining_policy
+from datarobotx.idp.retraining_policies import get_update_or_create_retraining_policy
 
 from .nodes import (ensure_deployment_settings, 
                     put_forecast_distance_into_registered_model_name,
@@ -58,6 +58,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "dataset_id": "preprocessed_timeseries_data_id",
                 "analyze_and_model_config": "params:project.analyze_and_model_config",
                 "datetime_partitioning_config": "params:project.datetime_partitioning_config",
+                # "feature_settings_config": "params:project.feature_settings_config",
                 "advanced_options_config": "params:project.advanced_options_config",
                 "use_case": "use_case_id",
             },
@@ -139,20 +140,22 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "dataset_id": "preprocessed_timeseries_data_id",
                 "enabled": "params:batch_prediction_job_definition.enabled",
                 "name": "params:batch_prediction_job_definition.name",
-                "batch_prediction_job": "params:batch_prediction_job_definition.batch_prediction_job"
+                "batch_prediction_job": "params:batch_prediction_job_definition.batch_prediction_job",
+                "schedule": "params:batch_prediction_job_definition.schedule"
             },
             outputs=None
         ),
-        node(
+       node(
             name="set_up_retraining_job",
-            func=update_or_create_retraining_policy,
+            func=lambda endpoint, token, deployment_id, name, dataset_id, retraining_settings: get_update_or_create_retraining_policy(
+                    endpoint, token, deployment_id, name, dataset_id, **retraining_settings),
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
                 "deployment_id": "deployment_id",
                 "name": "params:retraining_policy.name",
                 "dataset_id": "preprocessed_timeseries_data_id",
-                "kwargs": "params:retraining_policy.kwargs"
+                "retraining_settings": "params:retraining_policy.retraining_settings"
             },
             outputs=None
         )

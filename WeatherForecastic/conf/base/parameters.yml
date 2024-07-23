@@ -10,11 +10,50 @@
 get_data_pipeline:
   use_case:
     name: 
-  playlist_ids:
-  - PLeDakahyfrO-4kuBioL5ZAoy4j6aCnzWy
-  # Note: if you change any of the dataset names here, make sure they remain the same across all of your codespaces
-  timeseries_dataset_name: Music Video Raw Time Series Data 
-  metadataset_name: Music Video Meta Data
+  datasets:
+    timeseries_dataset_name: Weather Time Series Data 
+    # metadataset_name: Music Video Meta Data
+  locations:
+    Boston:
+      Latitude: 42.3584
+      Longitude: -71.0598
+    San Francisco:
+      Latitude: 37.7749
+      Longitude: -122.4194
+    Columbus:
+      Latitude: 39.9612
+      Longitude: -82.9988
+    Washington DC:
+      Latitude: 38.8951
+      Longitude: -77.0364
+    Pittsburgh:
+      Latitude: 39.6295
+      Longitude: -79.9559
+    Copenhagen:
+      Latitude: 55.6759
+      Longitude: 12.5655
+    Kyiv:
+      Latitude: 50.4547
+      Longitude: 30.5238
+    London:
+      Latitude: 51.5085
+      Longitude: -0.1257
+    Singapore:
+      Latitude: 1.2897
+      Longitude: 103.8501
+    Tokyo:
+      Latitude: 35.6895
+      Longitude: 139.6917
+  weather_parameters:
+    hourly: # You can find more parameters here: https://open-meteo.com/en/docs
+      - temperature_2m
+      - precipitation_probability
+      - precipitation
+      - uv_index
+    temperature_unit: fahrenheit
+    timezone: auto
+    past_days: 1
+    forecast_days: 0
 
 preprocessing:
   use_case:
@@ -37,35 +76,14 @@ deploy_forecast:
       target: viewDiff
       worker_count: 12
     datetime_partitioning_config:
-      datetime_partition_column: as_of_datetime
-      multiseries_id_columns: [title]
+      datetime_partition_column: date
+      multiseries_id_columns: [city]
       use_time_series: true
-      feature_derivation_window_start: -72 # Forecast/Feature Derivation Window start/ends must be a multiple of the time step
+      feature_derivation_window_start: -48 # Forecast/Feature Derivation Window start/ends must be a multiple of the time step
       feature_derivation_window_end: 0
-      forecast_window_start: 3
-      forecast_window_end: 36
+      forecast_window_start: 1
+      forecast_window_end: 12
       # default_to_known_in_advance: true
-    feature_settings_config:
-    - feature_name: video_id
-      known_in_advance: true
-    - feature_name: publishedAt
-      known_in_advance: true
-    - feature_name: channelId
-      known_in_advance: true
-    - feature_name: description
-      known_in_advance: true
-    - feature_name: categoryId
-      known_in_advance: true
-    - feature_name: channelTitle
-      known_in_advance: true
-    - feature_name: tags
-      known_in_advance: true
-    - feature_name: duration
-      known_in_advance: true
-    - feature_name: madeForKids
-      known_in_advance: true
-    - feature_name: association_id
-      known_in_advance: true
     advanced_options_config:
       seed: 42
   registered_model:

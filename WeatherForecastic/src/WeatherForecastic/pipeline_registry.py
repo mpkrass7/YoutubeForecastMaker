@@ -9,7 +9,7 @@
 from typing import Dict
 
 from kedro.pipeline import Pipeline
-from .pipelines import get_data_pipeline as get_data_p
+from .pipelines import setup as get_data_p
 from .pipelines import deploy_forecast as deploy
 from .pipelines import deploy_streamlit_app as deploy_st
 from .pipelines import preprocessing as prep

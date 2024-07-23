@@ -30,7 +30,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs="use_case_id",
         ),
         node(
-            name="Get_playlists",
+            name="Get_historical_data",
             func=get_videos,
             inputs={
                 "playlist_ids": "params:playlist_ids",

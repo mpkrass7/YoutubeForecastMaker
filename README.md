@@ -7,28 +7,15 @@ Youtube, and create a front end to display forecasts of the data. The template h
 3. Users will create a deployment and an application to display the data and forecasts
 
 ## Getting started -- Pulling Data
-1. Create a Youtube API key
-   1. Log into the [Google Developers Console](https://console.cloud.google.com/apis/dashboard)
-   2. Click "Create new project"
-         - Add a project name, select your organization (optional)
-   3. On the new project dashboard, click "Explore & Enable APIs"
-   4. In the library, navigate YouTube Data API v3 under YouTube APIs.
-   5. Enable the API
-   6. Create a credential
-      - In the window, select YouTube Data API v3 for the first blank space, Web server (e.g. node js. Tomcat) for the second, and check the Public data box on the third prompt.
-      - Click on the blue button titled "What credentials do I need?" After that, your API key will automatically load.
-      - Click "Done."
-   7. A screen will appear with the API key. Save this to your clipboard.
-
-2. Create a Use Case on [DataRobot](app.datarobot.com)
+1. Create a Use Case on [DataRobot](app.datarobot.com)
    - Click on "DataRobot NextGen"
    - Select Workbench
    - In the top right, click "Create New Use Case"
 
-3. Create a new Code Space titled "Pull Data" and navigate into this Codespace
+2. Create a new Code Space and navigate into it
    - Click the blue "Add" button
 
-4. Open up a terminal (in the bottom-left corner you'll see a ">_" icon) and type the following commands.
+3. Open up a terminal (in the bottom-left corner you'll see a ">_" icon) and type the following commands.
    - The project name does not matter.
    ```bash
    !pip install uv
@@ -37,26 +24,23 @@ Youtube, and create a front end to display forecasts of the data. The template h
    !uv pip install kedro
    ```
    ```bash
-   !kedro new -n $PROJECT_NAME$ --starter=https://github.com/mpkrass7/YoutubeForecastMaker.git --checkout master
+   !kedro new -n $PROJECT_NAME$ --starter=https://github.com/j-beastman/WeatherForecastic.git --checkout master
    ```
    ```bash
    !uv pip install -r $PROJECT_NAME$/requirements.txt
    ```
 
-5. Go into this folder, then conf/local/credentials.yml
-   - Fill in your datarobot credentials and your Youtube API key
-   - For this first pipeline, you don't have to put in your OpenAI credentials
+4. Go into this folder, then conf/local/credentials.yml
+   - Fill in your datarobot and OpenAI credentials
 
-6. Navigate to conf/base/parameters.yml
-   - Add in the youtube playlist IDs that you would like to pull data from.
-   - There are 3 '-' there, you can add more, or take out 2, if you use 1 playlist ID, make sure it has a '-' before it.
+5. Navigate to conf/base/parameters.yml
+   - Add in the cities along with the weather features you want to collect
 
-7. To schedule pulling your data, you'll want to navigate to the notebooks directory in your project.
-   - Click on data_pull.ipynb
-   - Schedule the notebook to run every hour.
-      - There is an icon on the left side of the screen that looks like a calendar
+6. Navigate to the notebooks directory. Run the setup.ipynb notebook?
 
-8. Once you've scheduled the notebook to run, give it some time to collect data. A few days at least, but the more data, the better the forecast will be.
+7. Create a copy of some notebook and schedule it to run to keep your data up to date
+   using the weather API
+
 
 ### Preprocessing the Data
 

@@ -130,6 +130,7 @@ def ensure_deployment_settings(
 
     if association_id is None:
         request_body["associationId"] = {
+            "columnNames": ["association_id"],
             "requiredInPredictionRequests": False,
             "autoGenerateId": True,
         }

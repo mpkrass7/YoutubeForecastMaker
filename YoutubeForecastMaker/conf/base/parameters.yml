@@ -85,17 +85,17 @@ deploy_forecast:
         runLeakageRemovedFeatureList: true
       trigger:
         type: accuracy_decline
-        schedule: 
-          minute: 
-            - 0
+        schedule:
+          minute:
+          - 0
           hour:
-            - 0
+          - 0
           dayOfMonth:
-            - "*"
+          - '*'
           month:
-            - "*"
+          - '*'
           dayOfWeek:
-            - "*"
+          - '*'
         statusDeclinesToWarning: true
         statusDeclinesToFailing: false
         statusStillInDecline: false

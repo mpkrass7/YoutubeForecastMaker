@@ -94,7 +94,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
                 "multiseries_id_column": "params:project.datetime_partitioning_config.multiseries_id_columns",
                 "prediction_interval": "params:deployment.prediction_interval",
-                "prediction_data": "prediction_data_id"
+                "scoring_data": "prediction_data_id"
             },
             outputs="app_parameters",
         ),

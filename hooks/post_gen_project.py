@@ -63,12 +63,11 @@ yaml_content['preprocessing']['use_case']['name'] = usecase_name
 yaml_content['preprocessing']['timeseries_dataset_name'] = usecase_name + ' Raw Time Series Data'
 yaml_content['preprocessing']['metadataset_name'] = usecase_name + ' Meta Data'
 yaml_content['preprocessing']['modeling_dataset_name'] = usecase_name + ' Modeling Data'
-yaml_content['preprocessing']['scoring_dataset_name'] = usecase_name + ' Scoring Data'
 
 yaml_content['deploy_forecast']['use_case']['name'] = usecase_name
 yaml_content['deploy_forecast']['dataset_name'] = usecase_name + ' Modeling Data'
 
-yaml_content['deploy_streamlit_app']['scoring_dataset_name'] = usecase_name + ' Scoring Data'
+yaml_content['deploy_streamlit_app']['prediction_dataset_name'] = usecase_name + ' Modeling Data'
 
 print("Updating credentials.yml")
 with open(file_path, 'w') as file:

@@ -23,8 +23,8 @@ def _check_if_dataset_exists(name: str) -> Union[str, None]:
 
 
 def create_or_update_modeling_dataset(modeling_dataset_name: str, 
-                                 metadataset_name: str, 
                                  timeseries_data_name: str,
+                                 metadataset_name: Optional[str] = None, 
                                  use_cases: Optional[UseCaseLike] = None) -> str:
     """Prepare a dataset for modeling in DataRobot.
     
@@ -94,8 +94,6 @@ def create_or_update_scoring_dataset(scoring_dataset_name: str,
     """
     modeling_df = dr.Dataset.get(modeling_dataset_id).get_as_dataframe()
 
-    modeling_df["association_id"] = modeling_df["video_id"] + "-" + modeling_df["as_of_datetime"]
-
     scoring_dataset_id = _check_if_dataset_exists(scoring_dataset_name)
 
     if scoring_dataset_id is None:
@@ -109,14 +107,12 @@ def create_or_update_scoring_dataset(scoring_dataset_name: str,
 
 def remove_old_retraining_data(endpoint: str, 
                                token: str,
-                               dataset1_name: str,
-                               dataset2_name: str):
+                               datasets_to_check: Dict[str, str]):
     from logzero import logger
 
     client = dr.Client(endpoint=endpoint, token=token)
-    datasets_to_check = [dataset1_name, dataset2_name]
 
-    for dataset_name in datasets_to_check:
+    for dataset_name in list(datasets_to_check.values()):
         data_id = _check_if_dataset_exists(dataset_name)
         if data_id is None:
             continue

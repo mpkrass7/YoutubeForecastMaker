@@ -54,7 +54,7 @@ def compile_metadata(videos: List[str], api_key: str) -> pd.DataFrame:
                 "publishedAt": items["snippet"]["publishedAt"],
                 "channelId": items["snippet"]["channelId"],
                 "title": items["snippet"]["title"],
-                "description": items["snippet"]["description"],
+                # "description": items["snippet"]["description"],
                 "categoryId": items["snippet"]["categoryId"],
                 "channelTitle": items["snippet"]["channelTitle"],
                 "tags": ", ".join(items["snippet"].get("tags", [])),
@@ -150,8 +150,6 @@ def update_or_create_timeseries_dataset(
             # update dataset if time is greater than 2 hours
             updated_df = pd.concat([current_data, data_frame]).reset_index(drop=True)
             dataset = dr.Dataset.create_version_from_in_memory_data(dataset_id, updated_df)
-    
-    # return str(dataset.id)
 
 def update_or_create_metadataset(
         name: str, 
@@ -166,6 +164,4 @@ def update_or_create_metadataset(
         dataset: Dataset = Dataset.create_from_in_memory_data(
             data_frame=data_frame, use_cases=use_cases
         )
-        dataset.modify(name=f"{name}")        
-    
-    # return str(dataset.id)
+        dataset.modify(name=f"{name}")

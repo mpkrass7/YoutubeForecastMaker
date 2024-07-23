@@ -31,31 +31,31 @@ def create_pipeline(**kwargs) -> Pipeline:
             name="preprocess_data",
             func=create_or_update_modeling_dataset,
             inputs={
-                "modeling_dataset_name": "params:modeling_dataset_name",
-                "metadataset_name": "params:metadataset_name",
-                "timeseries_data_name": "params:timeseries_dataset_name",
+                "modeling_dataset_name": "params:datasets.modeling_dataset_name",
+                "metadataset_name": "params:datasets.metadataset_name",
+                "timeseries_data_name": "params:datasets.timeseries_dataset_name",
                 "use_cases": "use_case_id",
             },
             outputs="modeling_dataset_id",
         ),
-        node(
-            name="scoring_data_update",
-            func=create_or_update_scoring_dataset,
-            inputs={
-                "scoring_dataset_name": "params:scoring_dataset_name",
-                "modeling_dataset_id": "modeling_dataset_id",
-                "use_cases": "use_case_id"
-            },
-            outputs=None
-        ),
+        # No longer necessary, don't need association_id
+        # node(
+        #     name="scoring_data_update",
+        #     func=create_or_update_scoring_dataset,
+        #     inputs={
+        #         "scoring_dataset_name": "params:scoring_dataset_name",
+        #         "modeling_dataset_id": "modeling_dataset_id",
+        #         "use_cases": "use_case_id"
+        #     },
+        #     outputs=None
+        # ),
         node(
             name="data_versioning_overflow_mitigation",
             func=remove_old_retraining_data,
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
-                "dataset1_name": "params:timeseries_dataset_name",
-                "dataset2_name": "params:modeling_dataset_name",
+                "datasets_to_check": "params:datasets",
             },
             outputs=None,
         ),

@@ -48,6 +48,16 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="preprocessed_timeseries_data_id", 
         ),
+        # node(
+        #     name="set_known_in_advance",
+        #     func=set_known_in_advance_features,
+        #     inputs={
+        #         "known_in_advance": "params:project.known_in_advance",
+        #         "not_known_in_advance": "params:project.not_known_in_advance",
+        #         "existing_datetime_partitioning_config": "params:project.datetime_partitioning_config"
+        #     },
+        #     outputs="updated_datetime_partitioning_config"
+        # ),
         node(
             name="make_autopilot_run",
             func=get_or_create_autopilot_run,
@@ -124,9 +134,8 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "deployment_id": "deployment_id",
                 "datetime_partitioning_column": "params:project.datetime_partitioning_config.datetime_partition_column",
                 "prediction_interval": "params:deployment.prediction_interval",
-                "dataset_id": "preprocessed_timeseries_data_id",
                 "date_format": "date_format",
-                "association_id": "params:deployment.association_id_column_name"
+                # "association_id": "params:deployment.association_id_column_name"
             },
             outputs=None,
         ),
@@ -145,7 +154,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs=None
         ),
-       node(
+        node(
             name="set_up_retraining_job",
             func=lambda endpoint, token, deployment_id, name, dataset_id, retraining_settings: get_update_or_create_retraining_policy(
                     endpoint, token, deployment_id, name, dataset_id, **retraining_settings),

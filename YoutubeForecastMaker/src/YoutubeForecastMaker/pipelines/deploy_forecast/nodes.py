@@ -14,11 +14,12 @@ from datarobot.models.use_cases.utils import UseCaseLike
 from datarobot import Dataset 
 
 from datarobotx.idp.batch_predictions import get_update_or_create_batch_prediction_job
-
 if TYPE_CHECKING:
     import tempfile
     import datarobot as dr
     import pandas as pd
+
+
 
 def find_existing_dataset(
     dataset_name: str, use_cases: Optional[UseCaseLike] = None, timeout_secs: int = 60, 
@@ -174,6 +175,7 @@ def setup_batch_prediction_job_definition(
         "every" time denomination or an array of integers (e.g. ``[1, 2, 3]``) to define
         a specific interval.
     """
+    import datarobot as dr
     dr.Client(token=token, endpoint=endpoint)  # type: ignore
 
     batch_prediction_job["intake_settings"]["datasetId"] = dataset_id

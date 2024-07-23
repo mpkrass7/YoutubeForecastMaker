@@ -29,12 +29,12 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs="app_execution_environment_id",
         ),
         node(
-            name="get_scoring_dataset_id",
+            name="get_prediction_dataset_id",
             func=get_dataset_id,
             inputs={
-                "dataset_name": "params:scoring_dataset_name"
+                "dataset_name": "params:prediction_dataset_name"
             },
-            outputs="scoring_data_id"
+            outputs="prediction_data_id"
         ),
         node(
             name="make_app_execution_environment_version",
@@ -94,7 +94,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "datetime_partition_column": "params:project.datetime_partitioning_config.datetime_partition_column",
                 "multiseries_id_column": "params:project.datetime_partitioning_config.multiseries_id_columns",
                 "prediction_interval": "params:deployment.prediction_interval",
-                "scoring_data": "scoring_data_id"
+                "prediction_data": "prediction_data_id"
             },
             outputs="app_parameters",
         ),

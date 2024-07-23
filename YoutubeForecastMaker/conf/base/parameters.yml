@@ -11,8 +11,7 @@ get_data_pipeline:
   use_case:
     name: 
   playlist_ids:
-    - 
-    -
+  - PLeDakahyfrO-4kuBioL5ZAoy4j6aCnzWy
   # Note: if you change any of the dataset names here, make sure they remain the same across all of your codespaces
   timeseries_dataset_name: Music Video Raw Time Series Data 
   metadataset_name: Music Video Meta Data
@@ -20,15 +19,16 @@ get_data_pipeline:
 preprocessing:
   use_case:
     name: 
-  timeseries_dataset_name: Music Video Raw Time Series Data
-  metadataset_name: Music Video Meta Data
-  modeling_dataset_name: Music Video Modeling Data
-  scoring_dataset_name: Music Video Scoring Data
+  datasets:
+    timeseries_dataset_name: Music Video Raw Time Series Data
+    metadataset_name: Music Video Meta Data
+    modeling_dataset_name: Music Video Modeling Data
+    # scoring_dataset_name: Music Video Scoring Data
 
 deploy_forecast:
   use_case:
     name: 
-  dataset_name: Music Video Scoring Data
+  dataset_name: Music Video Modeling Data
   project:
     name: {{ cookiecutter.project_name }} Project 
     analyze_and_model_config:
@@ -39,36 +39,33 @@ deploy_forecast:
     datetime_partitioning_config:
       datetime_partition_column: as_of_datetime
       multiseries_id_columns: [title]
-      use_time_series: True
-      # Forecast/Feature Derivation Window start/ends must be a multiple of the time step
-      feature_derivation_window_start: -72
+      use_time_series: true
+      feature_derivation_window_start: -72 # Forecast/Feature Derivation Window start/ends must be a multiple of the time step
       feature_derivation_window_end: 0
-      forecast_window_start: 3 
+      forecast_window_start: 3
       forecast_window_end: 36
-      # TODO: what other configurations should we add? Should we add and leave empty?
-      #   - Known in advance?
-      default_to_known_in_advance: true
+      # default_to_known_in_advance: true
     feature_settings_config:
-        - feature_name: video_id
-          known_in_advance: true
-        - feature_name: publishedAt
-          known_in_advance: true
-        - feature_name: channelId
-          known_in_advance: true
-        - feature_name: description
-          known_in_advance: true
-        - feature_name: categoryId
-          known_in_advance: true
-        - feature_name: channelTitle
-          known_in_advance: true
-        - feature_name: tags
-          known_in_advance: true
-        - feature_name: duration
-          known_in_advance: true
-        - feature_name: madeForKids
-          known_in_advance: true
-        - feature_name: association_id
-          known_in_advance: true
+    - feature_name: video_id
+      known_in_advance: true
+    - feature_name: publishedAt
+      known_in_advance: true
+    - feature_name: channelId
+      known_in_advance: true
+    - feature_name: description
+      known_in_advance: true
+    - feature_name: categoryId
+      known_in_advance: true
+    - feature_name: channelTitle
+      known_in_advance: true
+    - feature_name: tags
+      known_in_advance: true
+    - feature_name: duration
+      known_in_advance: true
+    - feature_name: madeForKids
+      known_in_advance: true
+    - feature_name: association_id
+      known_in_advance: true
     advanced_options_config:
       seed: 42
   registered_model:
@@ -77,15 +74,15 @@ deploy_forecast:
     label: {{ cookiecutter.project_name }}
     description: A fantastically generated forecast from Kedro, hurray!
     prediction_interval: 80
-    association_id_column_name: "association_id"
+    # association_id_column_name: association_id
   retraining_policy:
     name: Retrain on Accuracy Decline
-    kwargs:
+    retraining_settings:
       autopilotOptions:
         blendBestModels: false
         mode: quick
         shapOnlyMode: false
-        runLeakageRemovedFeatureList: True
+        runLeakageRemovedFeatureList: true
       trigger:
         type: accuracy_decline
         schedule: 
@@ -99,55 +96,55 @@ deploy_forecast:
             - "*"
           dayOfWeek:
             - "*"
-        statusDeclinesToWarning: true,
+        statusDeclinesToWarning: true
         statusDeclinesToFailing: false
         statusStillInDecline: false
       projectOptions:
         cvMethod: RandomCV
         validationType: CV
-        reps: null
-        validationPct: null
-        holdoutPct: null
+        reps:
+        validationPct:
+        holdoutPct:
         metric: RMSE
       featureListStrategy: informative_features
       projectOptionsStrategy: same_as_champion
       modelSelectionStrategy: autopilot_recommended
-    action: model_replacement
+      action: model_replacement
   batch_prediction_job_definition:
     batch_prediction_job:
       num_concurrent: 3
       intake_settings:
         type: dataset
     enabled: true
-    schedule: 
-          minute: 
-            - 0
-          hour:
-            - 0
-            - 3
-            - 6
-            - 9
-            - 12
-            - 15
-            - 18
-          dayOfMonth:
-            - "*"
-          month:
-            - "*"
-          dayOfWeek:
-            - "*"
+    schedule:
+      minute:
+      - 0
+      hour:
+      - 0
+      - 3
+      - 6
+      - 9
+      - 12
+      - 15
+      - 18
+      dayOfMonth:
+      - '*'
+      month:
+      - '*'
+      dayOfWeek:
+      - '*'
     name: Batch Prediction Job for Retraining
 
 
 deploy_streamlit_app:
-  scoring_dataset_name: Music Video Scoring Data
+  prediction_dataset_name: Music Video Modeling Data
   custom_app_name: {{ cookiecutter.project_name }} Streamlit
   environment_name: {{ cookiecutter.project_name }} Streamlit Environment
   environment_use_cases:
-    - customApplication
+  - customApplication
   page_title: Music Video Forecasting
   graph_y_axis: Increase in Views
-  lower_bound_forecast_at_0: True
+  lower_bound_forecast_at_0: true
   headline:
     temperature: 0.2
     prompt: |

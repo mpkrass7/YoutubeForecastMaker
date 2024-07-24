@@ -7,12 +7,11 @@
 # node inputs:
 # e.g. "params:my_key_1", "params:my_key_2.my_sub_key_2"
 
-get_data_pipeline:
+setup:
   use_case:
     name: 
   datasets:
     timeseries_dataset_name: Weather Time Series Data 
-    # metadataset_name: Music Video Meta Data
   locations:
     Boston:
       Latitude: 42.3584
@@ -59,15 +58,13 @@ preprocessing:
   use_case:
     name: 
   datasets:
-    timeseries_dataset_name: Music Video Raw Time Series Data
-    metadataset_name: Music Video Meta Data
-    modeling_dataset_name: Music Video Modeling Data
-    # scoring_dataset_name: Music Video Scoring Data
+    timeseries_dataset_name: Weather Raw Time Series Data
+    modeling_dataset_name: Weather Modeling Data
 
 deploy_forecast:
   use_case:
     name: 
-  dataset_name: Music Video Modeling Data
+  dataset_name: Weather Modeling Data
   project:
     name: {{ cookiecutter.project_name }} Project 
     analyze_and_model_config:
@@ -155,18 +152,18 @@ deploy_forecast:
 
 
 deploy_streamlit_app:
-  prediction_dataset_name: Music Video Modeling Data
+  prediction_dataset_name: Weather Modeling Data
   custom_app_name: {{ cookiecutter.project_name }} Streamlit
   environment_name: {{ cookiecutter.project_name }} Streamlit Environment
   environment_use_cases:
   - customApplication
-  page_title: Music Video Forecasting
+  page_title: Weather Forecasting
   graph_y_axis: Increase in Views
   lower_bound_forecast_at_0: true
   headline:
     temperature: 0.2
     prompt: |
-      You are a data analyst. Explain to non-technical clients what this data suggests.
+      You are a meteorologist. Explain to non-technical clients what this data suggests.
       Executive leadership will provide a forecast and you will interpret it and summarize the outlook, highlighting key insights.                         
       Your response should be only 1 sentence long, not very wordy. It should be like a news headline. Do not put quotation marks around it.
       Your response, while insightful, should speak to the general direction of the forecast.

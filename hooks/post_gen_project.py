@@ -55,9 +55,9 @@ with open(file_path, 'r') as file:
 if not isinstance(yaml_content, CommentedMap):
     yaml_content = CommentedMap(yaml_content)
 
-yaml_content['get_data_pipeline']['use_case']['name'] = usecase_name
-yaml_content['get_data_pipeline']['timeseries_dataset_name'] = usecase_name + ' Raw Time Series Data'
-yaml_content['get_data_pipeline']['metadataset_name'] = usecase_name + ' Meta Data'
+yaml_content['setup']['use_case']['name'] = usecase_name
+yaml_content['setup']['timeseries_dataset_name'] = usecase_name + ' Raw Time Series Data'
+yaml_content['setup']['metadataset_name'] = usecase_name + ' Meta Data'
 
 yaml_content['preprocessing']['use_case']['name'] = usecase_name
 yaml_content['preprocessing']['timeseries_dataset_name'] = usecase_name + ' Raw Time Series Data'

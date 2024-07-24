@@ -42,7 +42,7 @@ def get_historical_city_data(
     longitudes = [locations[city]["Longitude"] for city in locations]
     city_names = list(locations.keys())
 
-    parameters["past_days"] = 90 # Set to past 3 months to get good historical data.
+    parameters["past_days"] = 90 # Set to past 3 months to get some historical data.
     parameters["latitude"] = latitudes
     parameters["longitude"] = longitudes
 
@@ -134,18 +134,3 @@ def update_or_create_timeseries_dataset(
             # update dataset if time is greater than 2 hours
             updated_df = pd.concat([current_data, data_frame]).reset_index(drop=True)
             dataset = dr.Dataset.create_version_from_in_memory_data(dataset_id, updated_df)
-
-def update_or_create_metadataset(
-        name: str, 
-        data_frame: pd.DataFrame, 
-        use_cases: Optional[UseCaseLike] = None, 
-) -> None:
-    """
-    """
-    dataset_id = _check_if_dataset_exists(name)
-
-    if dataset_id is None:
-        dataset: Dataset = Dataset.create_from_in_memory_data(
-            data_frame=data_frame, use_cases=use_cases
-        )
-        dataset.modify(name=f"{name}")

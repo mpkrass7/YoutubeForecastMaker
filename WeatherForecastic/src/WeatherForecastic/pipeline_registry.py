@@ -22,6 +22,6 @@ def register_pipelines() -> Dict[str, Pipeline]:
     """
     return {
         "__default__": deploy.create_pipeline() + deploy_st.create_pipeline(),
-        "pull_data": get_data_p.create_pipeline(),
+        "setup": get_data_p.create_pipeline(),
         "data_prep": prep.create_pipeline(),
     }

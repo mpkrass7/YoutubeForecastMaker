@@ -6,14 +6,13 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 from kedro.pipeline import node, Pipeline
 from kedro.pipeline.modular_pipeline import pipeline
+
 from datarobotx.idp.use_cases import get_or_create_use_case
+from datarobotx.idp.datasets import get_or_create_dataset_from_df
 
 from .nodes import (
-                get_videos, 
-                compile_timeseries_data,
                 update_or_create_timeseries_dataset,
-                compile_metadata,
-                update_or_create_metadataset
+                get_historical_city_data
                 )
 
 
@@ -31,63 +30,46 @@ def create_pipeline(**kwargs) -> Pipeline:
         ),
         node(
             name="Get_historical_data",
-            func=get_videos,
+            func=get_historical_city_data,
             inputs={
-                "playlist_ids": "params:playlist_ids",
-                "api_key": "params:credentials.youtube_api_key"
+                "locations": "params:locations",
+                "parameters": "params:weather_parameters"
             },
-            outputs="combined_videos",
+            outputs="weather_df",
         ),
         node(
-            name="Pull_Data",
-            func=compile_timeseries_data,
-            inputs={
-                "videos": "combined_videos",
-                "api_key": "params:credentials.youtube_api_key"
-            },
-            outputs="time_series_data",
-            tags=["checkpoint"],
-        ),
-        node(
-            name="Pull_metadata",
-            func=compile_metadata,
-            inputs={
-                "videos": "combined_videos",
-                "api_key": "params:credentials.youtube_api_key"
-            },
-            outputs="metadata",
-            tags=["checkpoint"],
-        ),
-        node(
-            name="update_timeseries_data",
-            func=update_or_create_timeseries_dataset,
+            name="Create_historical_df",
+            func=get_or_create_dataset_from_df,
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
-                "name": "params:timeseries_dataset_name",
-                "data_frame": "time_series_data",
-                "use_cases": "use_case_id",
+                "name": "params:datasets.timeseries_dataset_name",
+                "data_frame": "weather_df",
+                "use_cases": "use_case_id"
             },
-            outputs=None
+            outputs="time_series_dataset_id"
         ),
-        node(
-            name="update_metadata",
-            func=update_or_create_metadataset,
-            inputs={
-                "use_cases": "use_case_id",
-                "name": "params:metadataset_name",
-                "data_frame": "metadata",
-            },
-            outputs=None
-        ),
+        # This would be useful in another pipeline?
+        # TODO: Not sure what else to do?
+        # node(
+        #     name="update_timeseries_data",
+        #     func=update_or_create_timeseries_dataset,
+        #     inputs={
+        #         "endpoint": "params:credentials.datarobot.endpoint",
+        #         "token": "params:credentials.datarobot.api_token",
+        #         "name": "params:timeseries_dataset_name",
+        #         "data_frame": "time_series_data",
+        #         "use_cases": "use_case_id",
+        #     },
+        #     outputs=None
+        # ),
     ]
     pipeline_inst = pipeline(nodes)
     return pipeline(
         pipeline_inst,
-        namespace="get_data_pipeline",
+        namespace="setup",
         parameters={
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
-            "params:credentials.youtube_api_key",
         },
     )

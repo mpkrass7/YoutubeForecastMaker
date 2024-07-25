@@ -9,6 +9,7 @@ from typing import List, Dict, Any, Tuple, Union, Optional
 import datarobot as dr
 import pandas as pd
 
+
 from datarobot import Dataset
 from datarobot.models.use_cases.utils import UseCaseLike
 from datarobotx.idp.common.hashing import get_hash
@@ -44,17 +45,34 @@ def create_notebook(
 def get_or_update_notebook(
         token: str,
         use_case_id: str,
-        binary_stream: BytesIO,
+        notebook: Any,
         name: Optional[str] = "scheduled_notebook",
 ) -> str:
     """
     """
     import requests
     import json
-    # from io import BytesIO
+    from io import BytesIO
     from logzero import logger
+    import nbformat as nbf
+
+    headers = {
+        'Authorization': f"Token {token}",
+    }
+
+    # with open(notebook, 'rb') as f:
+    #     data = {}
+    #     data['useCaseId'] = use_case_id
+    #     files = {
+    #         'file': (name, f.read()),
+    #     }
+    #     response = requests.post("https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/", headers=headers, data=data, files=files)
+    #     assert response.status_code == 201, (response.status_code, response.text)
 
     url = "https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/"
+
+    notebook_json = nbf.writes(notebook)
+    binary_stream = BytesIO(notebook_json.encode('utf-8')).getvalue()
     
     payload = {'useCaseId': use_case_id}
     files = [
@@ -83,6 +101,8 @@ def schedule_notebook(
         title: str,
         use_case_id: str,
 ) -> None:
+    """
+    """
     import requests
     import json
     from logzero import logger
@@ -143,6 +163,25 @@ def schedule_notebook(
         first_run = json.loads(response.text)["nextRunTime"]
         logger.info(f"Job scheduled to run first: {first_run} (UTC)")
 
+def instantiate_env(
+        token: str,
+        notebook_id: str,
+        **kwargs: Any
+) -> None:
+    """
+    """
+    import requests
+    headers = {
+        'Authorization': f"Token {token}",
+    }
+    data = {"data":[
+                {"name":"variable_key",
+                "value":"variable_value",
+                "description":""}
+            ]}
+
+    response = requests.post(f'https://app.datarobot.com/api-gw/nbx/environmentVariables/{notebook_id}/', json=data, headers=headers)
+    print(response.json())
 
 def get_historical_city_data(
         locations: List[Dict[str, float]], 

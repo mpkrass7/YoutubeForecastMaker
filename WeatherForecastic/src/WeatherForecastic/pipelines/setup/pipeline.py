@@ -52,22 +52,22 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="time_series_dataset_id"
         ),
-        node(
-            name="create_notebook",
-            func=create_notebook,
-            inputs={
-                "locations": "params:locations",
-                "parameters": "params:weather_parameters",                
-            },
-            outputs="notebook_binary"
-        ),
+        # node(
+        #     name="create_notebook",
+        #     func=create_notebook,
+        #     inputs={
+        #         "locations": "params:locations",
+        #         "parameters": "params:weather_parameters",                
+        #     },
+        #     outputs="notebook_binary"
+        # ),
         node(
             name="upload_notebook_to_datarobot",
             func=get_or_update_notebook,
             inputs={
                 "token": "params:credentials.datarobot.api_token",
                 "use_case_id": "use_case_id",
-                "binary_stream": "notebook_binary",
+                "notebook": "setup_notebook",
                 "name": "params:scheduled_notebook.notebook_name",
             },
             outputs="notebook_id"
@@ -84,7 +84,8 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "use_case_id": "use_case_id",
             },
             outputs=None
-        )
+        ),
+        
         
         # This would be useful in another pipeline?
         # TODO: Not sure what else to do?

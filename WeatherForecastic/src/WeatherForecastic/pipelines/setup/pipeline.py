@@ -8,14 +8,14 @@ from kedro.pipeline import node, Pipeline
 from kedro.pipeline.modular_pipeline import pipeline
 
 from datarobotx.idp.use_cases import get_or_create_use_case
-from datarobotx.idp.datasets import get_or_create_dataset_from_df
 
 from .nodes import (
                 update_or_create_timeseries_dataset,
                 get_historical_city_data,
-                create_notebook,
+                get_or_create_dataset_from_df,
                 get_or_update_notebook,
-                schedule_notebook
+                schedule_notebook,
+                instantiate_env
                 )
 
 
@@ -52,15 +52,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="time_series_dataset_id"
         ),
-        # node(
-        #     name="create_notebook",
-        #     func=create_notebook,
-        #     inputs={
-        #         "locations": "params:locations",
-        #         "parameters": "params:weather_parameters",                
-        #     },
-        #     outputs="notebook_binary"
-        # ),
         node(
             name="upload_notebook_to_datarobot",
             func=get_or_update_notebook,
@@ -85,7 +76,19 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs=None
         ),
-        
+        # To pass in: "time_series_dataset_id", "use_case_id"
+        node(
+            name="Instantiating_Env_Variables_into_Notebook_from_params_yml",
+            func=instantiate_env,
+            inputs={
+                "token":"params:credentials.datarobot.api_token",
+                "notebook_id": "notebook_id",
+                "locations": "params:locations",
+                "parameters": "params:weather_parameters",
+                "modeling_dataset_name": "params:datasets.timeseries_dataset_name"
+            },
+            outputs=None
+        )
         
         # This would be useful in another pipeline?
         # TODO: Not sure what else to do?

@@ -15,31 +15,48 @@ from datarobot.models.use_cases.utils import UseCaseLike
 from datarobotx.idp.common.hashing import get_hash
 from io import BytesIO
 
-def create_notebook(
-        locations: List[Dict[str, float]], 
-        parameters: Dict[str, Any],
-) -> bytes:
-    """Creates the binary for notebook to be uploaded to your use case
 
+def _check_if_dataset_exists_in_usecase(
+        name: str, 
+        use_cases: Optional[UseCaseLike] = None
+) -> Union[str, None]:
     """
-    import nbformat as nbf
-    from nbformat.notebooknode import NotebookNode
+    Check if a dataset with the given name exists in your use case
+    Returns:
+        id (string) or None
+    """
+    datasets = dr.Dataset.list(use_cases=use_cases)
+    return next((dataset.id for dataset in datasets if dataset.name == name), None)
 
-    # Create a new notebook object
-    nb: NotebookNode = nbf.v4.new_notebook()
 
-    markdown_cell = nbf.v4.new_markdown_cell("## This notebook was generated from `kedro run -p 'setup'` ")
-    nb.cells.append(markdown_cell)
+def get_or_create_dataset_from_df(
+    endpoint: str,
+    token: str,
+    name: str,
+    data_frame: pd.DataFrame,
+    use_cases: Optional[UseCaseLike] = None,
+    **kwargs: Any,
+) -> str:
+    """Get or create a DR dataset from a dataframe with requested parameters.
 
-    # Add a Code cell
-    code_cell = nbf.v4.new_code_cell("print('Hello, world!')")
-    nb.cells.append(code_cell)
+    Notes
+    -----
+    Records a checksum in the dataset name to allow future calls to this
+    function to validate whether a desired dataset already exists
+    """
+    import datarobot as dr
+    dr.Client(token=token, endpoint=endpoint)  # type: ignore
 
-    # Serialize the notebook object to JSON string
-    notebook_json = nbf.writes(nb)
+    dataset_id = _check_if_dataset_exists_in_usecase(name=name, use_cases=use_cases)
 
-    # Convert the JSON string to a binary stream
-    return BytesIO(notebook_json.encode('utf-8')).getvalue()
+    if dataset_id is None:
+        dataset: dr.Dataset = dr.Dataset.create_from_in_memory_data(
+                data_frame=data_frame, use_cases=use_cases
+            )
+        dataset.modify(name=name)
+        return str(dataset.id)
+    else: 
+        return dataset_id
 
 # Need to add get functionality
 def get_or_update_notebook(
@@ -60,18 +77,9 @@ def get_or_update_notebook(
         'Authorization': f"Token {token}",
     }
 
-    # with open(notebook, 'rb') as f:
-    #     data = {}
-    #     data['useCaseId'] = use_case_id
-    #     files = {
-    #         'file': (name, f.read()),
-    #     }
-    #     response = requests.post("https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/", headers=headers, data=data, files=files)
-    #     assert response.status_code == 201, (response.status_code, response.text)
-
     url = "https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/"
 
-    notebook_json = nbf.writes(notebook)
+    notebook_json = nbf.writes(notebook) #TODO: There may be a cleaner way to do this...
     binary_stream = BytesIO(notebook_json.encode('utf-8')).getvalue()
     
     payload = {'useCaseId': use_case_id}
@@ -91,7 +99,6 @@ def get_or_update_notebook(
         logger.info(f"Your notebook titled {name} has been generated in your use case (id : {use_case_id})")
         
         return str(json.loads(response.text)['id'])
-    # return "66a28de33521dd8d44d020ae"
 
 def schedule_notebook(
         token: str,
@@ -109,9 +116,11 @@ def schedule_notebook(
     import time
     DATAROBOT_HOST = "https://app.datarobot.com/"
 
+    ####################################################
     headers = {
             'Authorization': f"Token {token}",
         }
+    
     # Start the notebook session
     start_response = requests.post(
         f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/start/',
@@ -136,6 +145,7 @@ def schedule_notebook(
         headers=headers
     )
     assert start_response.status_code == 200, (start_response.status_code, start_response.text)
+    #################################################### This can all be deleted once Christian's PR goes through.
 
     url = "https://app.datarobot.com/api-gw/nbx/scheduling/"
 
@@ -171,17 +181,20 @@ def instantiate_env(
     """
     """
     import requests
+    import json
     headers = {
         'Authorization': f"Token {token}",
     }
-    data = {"data":[
-                {"name":"variable_key",
-                "value":"variable_value",
-                "description":""}
-            ]}
+    data = {
+        "data":[
+            {"name": "locations", "value":json.dumps(kwargs.get("locations")), "description":""},
+            {"name": "parameters", "value":json.dumps(kwargs.get("parameters")),"description":""},
+            {"name": "modeling_dataset_name", "value":kwargs.get("modeling_dataset_name"),"description":""}
+        ]
+    }
 
     response = requests.post(f'https://app.datarobot.com/api-gw/nbx/environmentVariables/{notebook_id}/', json=data, headers=headers)
-    print(response.json())
+    # print(response.json())
 
 def get_historical_city_data(
         locations: List[Dict[str, float]], 

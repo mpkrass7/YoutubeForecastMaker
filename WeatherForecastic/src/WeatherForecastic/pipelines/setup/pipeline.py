@@ -12,7 +12,10 @@ from datarobotx.idp.datasets import get_or_create_dataset_from_df
 
 from .nodes import (
                 update_or_create_timeseries_dataset,
-                get_historical_city_data
+                get_historical_city_data,
+                create_notebook,
+                get_or_update_notebook,
+                schedule_notebook
                 )
 
 
@@ -38,7 +41,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs="weather_df",
         ),
         node(
-            name="Create_historical_df",
+            name="Create_historical_dataset",
             func=get_or_create_dataset_from_df,
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
@@ -49,8 +52,44 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs="time_series_dataset_id"
         ),
+        node(
+            name="create_notebook",
+            func=create_notebook,
+            inputs={
+                "locations": "params:locations",
+                "parameters": "params:weather_parameters",                
+            },
+            outputs="notebook_binary"
+        ),
+        node(
+            name="upload_notebook_to_datarobot",
+            func=get_or_update_notebook,
+            inputs={
+                "token": "params:credentials.datarobot.api_token",
+                "use_case_id": "use_case_id",
+                "binary_stream": "notebook_binary",
+                "name": "params:scheduled_notebook.notebook_name",
+            },
+            outputs="notebook_id"
+        ),
+        node(
+            name="put_notebook_on_scheduled_job",
+            func=schedule_notebook,
+            inputs={
+                "token": "params:credentials.datarobot.api_token",
+                "endpoint": "params:credentials.datarobot.endpoint",
+                "notebook_id": "notebook_id",
+                "schedule": "params:scheduled_notebook.schedule",
+                "title": "params:scheduled_notebook.job_name",
+                "use_case_id": "use_case_id",
+            },
+            outputs=None
+        )
+        
         # This would be useful in another pipeline?
         # TODO: Not sure what else to do?
+        #   1. Create a notebook in the use case...
+        #   2. Copy the code from preprocessing?
         # node(
         #     name="update_timeseries_data",
         #     func=update_or_create_timeseries_dataset,

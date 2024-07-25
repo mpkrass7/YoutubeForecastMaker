@@ -12,7 +12,137 @@ import pandas as pd
 from datarobot import Dataset
 from datarobot.models.use_cases.utils import UseCaseLike
 from datarobotx.idp.common.hashing import get_hash
-import time
+from io import BytesIO
+
+def create_notebook(
+        locations: List[Dict[str, float]], 
+        parameters: Dict[str, Any],
+) -> bytes:
+    """Creates the binary for notebook to be uploaded to your use case
+
+    """
+    import nbformat as nbf
+    from nbformat.notebooknode import NotebookNode
+
+    # Create a new notebook object
+    nb: NotebookNode = nbf.v4.new_notebook()
+
+    markdown_cell = nbf.v4.new_markdown_cell("## This notebook was generated from `kedro run -p 'setup'` ")
+    nb.cells.append(markdown_cell)
+
+    # Add a Code cell
+    code_cell = nbf.v4.new_code_cell("print('Hello, world!')")
+    nb.cells.append(code_cell)
+
+    # Serialize the notebook object to JSON string
+    notebook_json = nbf.writes(nb)
+
+    # Convert the JSON string to a binary stream
+    return BytesIO(notebook_json.encode('utf-8')).getvalue()
+
+# Need to add get functionality
+def get_or_update_notebook(
+        token: str,
+        use_case_id: str,
+        binary_stream: BytesIO,
+        name: Optional[str] = "scheduled_notebook",
+) -> str:
+    """
+    """
+    import requests
+    import json
+    # from io import BytesIO
+    from logzero import logger
+
+    url = "https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/"
+    
+    payload = {'useCaseId': use_case_id}
+    files = [
+        ('file',(f'{name}.ipynb',binary_stream,'application/octet-stream'))
+    ]
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Cookie': 'datarobot_nextgen=0'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+    if response.status_code != 201:
+        print(response.text)
+        response.raise_for_status()
+    else:
+        logger.info(f"Your notebook titled {name} has been generated in your use case (id : {use_case_id})")
+        
+        return str(json.loads(response.text)['id'])
+    # return "66a28de33521dd8d44d020ae"
+
+def schedule_notebook(
+        token: str,
+        endpoint:str,
+        notebook_id: str,
+        schedule: Any,
+        title: str,
+        use_case_id: str,
+) -> None:
+    import requests
+    import json
+    from logzero import logger
+    import time
+    DATAROBOT_HOST = "https://app.datarobot.com/"
+
+    headers = {
+            'Authorization': f"Token {token}",
+        }
+    # Start the notebook session
+    start_response = requests.post(
+        f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/start/',
+        headers=headers
+    )
+    assert start_response.status_code == 200, (start_response.status_code, start_response.text)
+
+    # We need to wait for the session to start before executing code (session status of "running")
+    for _ in range(120):  # Waiting 2 minutes (120 seconds)
+        status_response = requests.get(
+            f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/',
+            headers=headers
+        )
+        assert status_response.status_code == 200, (status_response.status_code, status_response.text)
+        if status_response.json()['status'] == 'running':
+            break
+        time.sleep(1)
+
+    # End the session so that we can schedule the job
+    start_response = requests.post(
+        f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/stop/',
+        headers=headers
+    )
+    assert start_response.status_code == 200, (start_response.status_code, start_response.text)
+
+    url = "https://app.datarobot.com/api-gw/nbx/scheduling/"
+
+    payload = json.dumps({
+        "useCaseId": use_case_id,
+        "notebookId": notebook_id,
+        "title": title,
+        "enabled": True,
+        "schedule": schedule
+    })
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Token {token}',
+        'Cookie': 'datarobot_nextgen=0'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    if response.status_code != 201:
+        reason = json.loads(response.text)["message"]
+        print(reason)
+        response.raise_for_status()
+    else:
+        first_run = json.loads(response.text)["nextRunTime"]
+        logger.info(f"Job scheduled to run first: {first_run} (UTC)")
+
 
 def get_historical_city_data(
         locations: List[Dict[str, float]], 
@@ -74,7 +204,7 @@ def get_historical_city_data(
                         end = timeend,
                         freq = pd.Timedelta(seconds = hourly.Interval()),
                         inclusive = "left"
-                    ),
+                    ).strftime('%Y-%m-%d %H:%M:%S'),
             "temperature": hourly_temperature_2m,
             "uv_index": hourly_uv_index,
             "precipitation_probability": hourly_precipitation_probability,
@@ -88,7 +218,6 @@ def get_historical_city_data(
         
 
     hourly_dataframe = pd.concat(all_data, ignore_index=True)
-    hourly_dataframe.to_csv("Test_df.csv", index=False)
     return hourly_dataframe
 
 

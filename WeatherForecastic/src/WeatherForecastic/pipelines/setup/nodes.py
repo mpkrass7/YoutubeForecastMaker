@@ -194,7 +194,7 @@ def instantiate_env(
     }
 
     response = requests.post(f'https://app.datarobot.com/api-gw/nbx/environmentVariables/{notebook_id}/', json=data, headers=headers)
-    # print(response.json())
+    # TODO: Assert response status, log message with enviornment variables
 
 def get_historical_city_data(
         locations: List[Dict[str, float]], 
@@ -205,16 +205,12 @@ def get_historical_city_data(
     """
     import openmeteo_requests
 
-    import requests_cache
     import pandas as pd
-    from retry_requests import retry
     import datetime
     import pytz
 
     # Setup the Open-Meteo API client with cache and retry on error
-    cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
-    retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
-    openmeteo = openmeteo_requests.Client(session = retry_session)
+    openmeteo = openmeteo_requests.Client()
 
     # Make sure all required weather variables are listed here
     # The order of variables in hourly or daily is important to assign them correctly below
@@ -281,37 +277,3 @@ def _check_if_dataset_exists(name: str) -> Union[str, None]:
     """
     datasets = dr.Dataset.list()
     return next((dataset.id for dataset in datasets if dataset.name == name), None)
-
-def update_or_create_timeseries_dataset(
-        endpoint: str,
-        token: str,
-        name: str, 
-        data_frame: pd.DataFrame, 
-        use_cases: Optional[UseCaseLike] = None,
-        **kwargs: Any,
-) -> None:
-    """
-    """
-    from datetime import timedelta
-    CLIENT = dr.Client(token=token, endpoint=endpoint)
-    dataset_token = get_hash(name, data_frame, use_cases, **kwargs)
-    dataset_id = _check_if_dataset_exists(name)
-
-    if dataset_id is None:
-        dataset: Dataset = Dataset.create_from_in_memory_data(
-            data_frame=data_frame, use_cases=use_cases
-        )
-        dataset.modify(name=f"{name}")
-    else:
-        current_data = dr.Dataset.get(dataset_id).get_as_dataframe()
-        latest_time_pulled = pd.to_datetime(current_data["as_of_datetime"]).max()
-
-        time_pulled_this_df = pd.to_datetime(data_frame["as_of_datetime"]).max()
-
-        # Guard rail to ensure that there is sufficient time between data pulls.
-        if abs(latest_time_pulled - time_pulled_this_df) <= timedelta(hours=0.5):
-            return name
-        else:
-            # update dataset if time is greater than 2 hours
-            updated_df = pd.concat([current_data, data_frame]).reset_index(drop=True)
-            dataset = dr.Dataset.create_version_from_in_memory_data(dataset_id, updated_df)

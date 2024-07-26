@@ -36,7 +36,7 @@ def prepare_yaml_content(*args: Any, **kwargs: Any) -> Union[Dict[str, Any], Lis
     else:
         return kwargs
     
-def get_dataset_id(dataset_name: str) -> Union[str, None]:
+def get_dataset_id(dataset_name: str, use_case_id: str) -> Union[str, None]:
     """Retrieve the ID of the dataset
 
     Parameters
@@ -48,7 +48,9 @@ def get_dataset_id(dataset_name: str) -> Union[str, None]:
     str:
         The ID of the scoring dataset
     """
-    datasets = dr.Dataset.list()
+
+    datasets = dr.Dataset.list(use_cases=use_case_id)
+    print(datasets, "datasets")
     return next((dataset.id for dataset in datasets if dataset.name == dataset_name), None)
 
 

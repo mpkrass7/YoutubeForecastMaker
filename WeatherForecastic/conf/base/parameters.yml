@@ -11,7 +11,7 @@ setup:
   use_case:
     name: 
   datasets:
-    timeseries_dataset_name: Weather Time Series Data 
+    timeseries_dataset_name: Weather Time Series Data
   locations:
     Boston:
       Latitude: 42.3584
@@ -53,24 +53,37 @@ setup:
     timezone: auto
     past_days: 1
     forecast_days: 0
+  scheduled_notebook:
+    notebook_name: Data Extraction
+    job_name: Scheduled Extraction
+    schedule:
+      minute:
+      - 0
+      hour:
+      - 0
+      dayOfMonth:
+      - '*'
+      month:
+      - '*'
+      dayOfWeek:
+      - '*'
 
 preprocessing:
   use_case:
     name: 
   datasets:
-    timeseries_dataset_name: Weather Raw Time Series Data
-    modeling_dataset_name: Weather Modeling Data
+    timeseries_dataset_name: Weather Time Series Data
 
 deploy_forecast:
   use_case:
     name: 
-  dataset_name: Weather Modeling Data
+  dataset_name: Weather Time Series Data
   project:
     name: {{ cookiecutter.project_name }} Project 
     analyze_and_model_config:
       metric: RMSE
       mode: quick
-      target: viewDiff
+      target: temperature
       worker_count: 12
     datetime_partitioning_config:
       datetime_partition_column: date
@@ -152,7 +165,7 @@ deploy_forecast:
 
 
 deploy_streamlit_app:
-  prediction_dataset_name: Weather Modeling Data
+  prediction_dataset_name: Weather Time Series Data
   custom_app_name: {{ cookiecutter.project_name }} Streamlit
   environment_name: {{ cookiecutter.project_name }} Streamlit Environment
   environment_use_cases:

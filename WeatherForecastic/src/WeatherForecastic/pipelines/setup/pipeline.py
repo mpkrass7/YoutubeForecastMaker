@@ -10,7 +10,6 @@ from kedro.pipeline.modular_pipeline import pipeline
 from datarobotx.idp.use_cases import get_or_create_use_case
 
 from .nodes import (
-                update_or_create_timeseries_dataset,
                 get_historical_city_data,
                 get_or_create_dataset_from_df,
                 get_or_update_notebook,
@@ -115,4 +114,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
         },
+        outputs={
+            "time_series_dataset_id"
+        }
     )

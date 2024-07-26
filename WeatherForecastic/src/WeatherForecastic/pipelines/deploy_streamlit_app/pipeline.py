@@ -7,6 +7,7 @@
 
 from kedro.pipeline import node, Pipeline
 from kedro.pipeline.modular_pipeline import pipeline
+from datarobotx.idp.use_cases import get_or_create_use_case
 from datarobotx.idp.custom_applications import get_replace_or_create_custom_app_from_env
 from datarobotx.idp.execution_environments import get_or_create_execution_environment
 from .nodes import (log_outputs, 
@@ -17,6 +18,16 @@ from .nodes import (log_outputs,
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
+        node(
+            name="make_datarobot_use_case",
+            func=get_or_create_use_case,
+            inputs={
+                "endpoint": "params:credentials.datarobot.endpoint",
+                "token": "params:credentials.datarobot.api_token",
+                "name": "params:use_case.name",
+            },
+            outputs="use_case_id",
+        ),
         node(
             name="make_app_execution_environment",
             func=get_or_create_execution_environment,
@@ -32,7 +43,8 @@ def create_pipeline(**kwargs) -> Pipeline:
             name="get_prediction_dataset_id",
             func=get_dataset_id,
             inputs={
-                "dataset_name": "params:prediction_dataset_name"
+                "dataset_name": "params:prediction_dataset_name",
+                "use_case_id": "use_case_id"
             },
             outputs="prediction_data_id"
         ),
@@ -132,10 +144,12 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:project.datetime_partitioning_config.datetime_partition_column": "params:deploy_forecast.project.datetime_partitioning_config.datetime_partition_column",
             "params:deployment.label": "params:deploy_forecast.deployment.label",
             "params:deployment.prediction_interval": "params:deploy_forecast.deployment.prediction_interval",
+            "params:use_case.name": "params:setup.use_case.name",
         },
         inputs={
             "project_id",
             "recommended_model_id",
             "deployment_id",
+            # "time_series_dataset_id"
         },
     )

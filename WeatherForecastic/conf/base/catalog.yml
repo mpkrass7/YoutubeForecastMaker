@@ -8,10 +8,17 @@
 # https://docs.kedro.org/en/stable/data/data_catalog.html
 
 
+setup.setup_notebook:
+  type: WeatherForecastic.datasets.notebook_dataset.JupyterNotebookDataSet
+  filepath: notebooks/data_pull.ipynb
+
+setup.time_series_dataset_id:
+  type: text.TextDataset
+  filepath: data/outputs/time_series_dataset_id.txt
+
 deploy_forecast.scoring_data_id:
   type: text.TextDataset
   filepath: data/outputs/scoring_data_id.txt
-
 
 project_id:
   type: text.TextDataset

@@ -12,7 +12,7 @@ from kedro.pipeline import Pipeline
 from .pipelines import setup as get_data_p
 from .pipelines import deploy_forecast as deploy
 from .pipelines import deploy_streamlit_app as deploy_st
-from .pipelines import preprocessing as prep
+# from .pipelines import data_wrangle as prep
 
 def register_pipelines() -> Dict[str, Pipeline]:
     """Register the project's pipelines.
@@ -23,5 +23,5 @@ def register_pipelines() -> Dict[str, Pipeline]:
     return {
         "__default__": deploy.create_pipeline() + deploy_st.create_pipeline(),
         "setup": get_data_p.create_pipeline(),
-        "data_prep": prep.create_pipeline(),
+        # "data_wrangle": prep.create_pipeline(),
     }

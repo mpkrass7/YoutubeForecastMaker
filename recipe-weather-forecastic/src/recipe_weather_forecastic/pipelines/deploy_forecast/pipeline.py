@@ -178,9 +178,9 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.default_prediction_server_id",
         },
         outputs={
+            "use_case_id",
             "project_id",
             "recommended_model_id",
             "deployment_id",
-            "preprocessed_timeseries_data_id"
-        }
+        },
     )

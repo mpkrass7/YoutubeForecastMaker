@@ -1,0 +1,88 @@
+deploy_forecast:
+  use_case:
+    name: ${globals:project_name} 
+  dataset_name: ${globals:project_name} Time Series Data
+  project:
+    name: ${globals:project_name} Project 
+    analyze_and_model_config:
+      metric: RMSE
+      mode: quick
+      target: temperature
+      worker_count: 12
+    datetime_partitioning_config:
+      datetime_partition_column: date
+      multiseries_id_columns: [city]
+      use_time_series: true
+      feature_derivation_window_start: -48 # Forecast/Feature Derivation Window start/ends must be a multiple of the time step
+      feature_derivation_window_end: 0
+      forecast_window_start: 1
+      forecast_window_end: 12
+      # default_to_known_in_advance: true
+    advanced_options_config:
+      seed: 42
+  registered_model:
+    name: ${globals:project_name}
+  deployment:
+    label: ${globals:project_name}
+    description: A fantastically generated forecast from Kedro, hurray!
+    prediction_interval: 80
+    # association_id_column_name: association_id
+  retraining_policy:
+    name: ${globals:project_name} Retrain on Accuracy Decline
+    retraining_settings:
+      autopilotOptions:
+        blendBestModels: false
+        mode: quick
+        shapOnlyMode: false
+        runLeakageRemovedFeatureList: true
+      trigger:
+        type: accuracy_decline
+        schedule:
+          minute:
+          - 0
+          hour:
+          - 0
+          dayOfMonth:
+          - '*'
+          month:
+          - '*'
+          dayOfWeek:
+          - '*'
+        statusDeclinesToWarning: true
+        statusDeclinesToFailing: false
+        statusStillInDecline: false
+      projectOptions:
+        cvMethod: RandomCV
+        validationType: CV
+        reps:
+        validationPct:
+        holdoutPct:
+        metric: RMSE
+      featureListStrategy: informative_features
+      projectOptionsStrategy: same_as_champion
+      modelSelectionStrategy: autopilot_recommended
+      action: model_replacement
+  batch_prediction_job_definition:
+    batch_prediction_job:
+      num_concurrent: 3
+      intake_settings:
+        type: dataset
+    enabled: true
+    schedule:
+      minute:
+      - 0
+      hour:
+      - 0
+      - 3
+      - 6
+      - 9
+      - 12
+      - 15
+      - 18
+      dayOfMonth:
+      - '*'
+      month:
+      - '*'
+      dayOfWeek:
+      - '*'
+    name: ${globals:project_name} Batch Prediction Job for Retraining

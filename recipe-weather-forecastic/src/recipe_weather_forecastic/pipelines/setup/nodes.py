@@ -5,16 +5,11 @@
 # affiliates.
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
-from typing import List, Dict, Any, Tuple, Union, Optional
+from typing import List, Dict, Any, Union, Optional
 import datarobot as dr
 import pandas as pd
 
-
-from datarobot import Dataset
 from datarobot.models.use_cases.utils import UseCaseLike
-from datarobotx.idp.common.hashing import get_hash
-from io import BytesIO
-
 
 def _check_if_dataset_exists_in_usecase(
         name: str, 
@@ -80,7 +75,6 @@ def _compare_notebook_content(
     """
     import requests
     import json
-    import difflib
     headers = {'Authorization': f"Token {token}"}
     response = requests.get(url=f"https://app.datarobot.com/api-gw/nbx/notebooks/{notebook_id}/cells/", headers=headers)
 
@@ -114,39 +108,35 @@ def get_or_update_notebook(
 
     # First, check if a notebook with that name already exists
     ids_with_matching_name = _check_if_notebook_exists(token, name, use_case_id)
-    id = None
+    existing_id = None
     for notebook_id in ids_with_matching_name:
-        id = _compare_notebook_content(notebook_json, notebook_id, token)
-        if id:
-            break
+        existing_id = _compare_notebook_content(notebook_json, notebook_id, token)
+        if existing_id:
+            logger.info(f"Your notebook titled {name} was already generated (use_case_id : {use_case_id})")
+            return existing_id # TODO: does returning here leave this loop on the stack, or is Python smart?
     
-    if id:
-        logger.info(f"Your notebook titled {name} was already generated (use_case_id : {use_case_id})")
-        return id
+    url = "https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/"
+
+    payload = {'useCaseId': use_case_id}
+
+    files = [
+        ('file',(f'{name}.ipynb',binary_stream,'application/octet-stream'))
+    ]
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Cookie': 'datarobot_nextgen=0'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload, files=files)
+    if response.status_code != 201:
+        response.raise_for_status()
     else:
-        url = "https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/"
-
-        payload = {'useCaseId': use_case_id}
-
-        files = [
-            ('file',(f'{name}.ipynb',binary_stream,'application/octet-stream'))
-        ]
-        headers = {
-            'Authorization': f'Bearer {token}',
-            'Cookie': 'datarobot_nextgen=0'
-        }
-
-        response = requests.request("POST", url, headers=headers, data=payload, files=files)
-        if response.status_code != 201:
-            response.raise_for_status()
-        else:
-            logger.info(f"Your notebook titled {name} has been generated in your use case (use_case_id : {use_case_id})")
-            
-            return str(json.loads(response.text)['id'])
+        logger.info(f"Your notebook titled {name} has been generated in your use case (use_case_id : {use_case_id})")
+        
+        return str(json.loads(response.text)['id'])
 
 def schedule_notebook(
         token: str,
-        endpoint:str,
         notebook_id: str,
         schedule: Any,
         title: str,
@@ -157,39 +147,40 @@ def schedule_notebook(
     import requests
     import json
     from logzero import logger
+    
     import time
     DATAROBOT_HOST = "https://app.datarobot.com/"
 
-    ####################################################
-    headers = {
-            'Authorization': f"Token {token}",
-        }
+    # ####################################################
+    # headers = {
+    #         'Authorization': f"Token {token}",
+    #     }
     
-    # Start the notebook session
-    start_response = requests.post(
-        f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/start/',
-        headers=headers
-    )
-    assert start_response.status_code == 200, (start_response.status_code, start_response.text)
+    # # Start the notebook session
+    # start_response = requests.post(
+    #     f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/start/',
+    #     headers=headers
+    # )
+    # assert start_response.status_code == 200, (start_response.status_code, start_response.text)
 
-    # We need to wait for the session to start before executing code (session status of "running")
-    for _ in range(120):  # Waiting 2 minutes (120 seconds)
-        status_response = requests.get(
-            f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/',
-            headers=headers
-        )
-        assert status_response.status_code == 200, (status_response.status_code, status_response.text)
-        if status_response.json()['status'] == 'running':
-            break
-        time.sleep(1)
+    # # We need to wait for the session to start before executing code (session status of "running")
+    # for _ in range(120):  # Waiting 2 minutes (120 seconds)
+    #     status_response = requests.get(
+    #         f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/',
+    #         headers=headers
+    #     )
+    #     assert status_response.status_code == 200, (status_response.status_code, status_response.text)
+    #     if status_response.json()['status'] == 'running':
+    #         break
+    #     time.sleep(1)
 
-    # End the session so that we can schedule the job
-    start_response = requests.post(
-        f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/stop/',
-        headers=headers
-    )
-    assert start_response.status_code == 200, (start_response.status_code, start_response.text)
-    #################################################### This can all be deleted once Christian's PR goes through.
+    # # End the session so that we can schedule the job
+    # start_response = requests.post(
+    #     f'{DATAROBOT_HOST}api-gw/nbx/orchestrator/notebooks/{notebook_id}/stop/',
+    #     headers=headers
+    # )
+    # assert start_response.status_code == 200, (start_response.status_code, start_response.text)
+    # #################################################### This can all be deleted once Christian's PR goes through.
 
     url = "https://app.datarobot.com/api-gw/nbx/scheduling/"
 
@@ -239,7 +230,8 @@ def instantiate_env(
     }
 
     response = requests.post(f'https://app.datarobot.com/api-gw/nbx/environmentVariables/{notebook_id}/', json=data, headers=headers)
-    # TODO: Assert response status, log message with enviornment variables
+    print(response.json())     # TODO: Assert response status, log message with enviornment variables
+
 
 def get_historical_city_data(
         locations: List[Dict[str, float]], 
@@ -266,6 +258,7 @@ def get_historical_city_data(
     city_names = list(locations.keys())
 
     parameters["past_days"] = 90 # Set to past 3 months to get some historical data.
+    parameters["forecast_days"] = 1 # Have to set forecast_days to 1 to get today's data
     parameters["latitude"] = latitudes
     parameters["longitude"] = longitudes
 
@@ -273,12 +266,7 @@ def get_historical_city_data(
 
     all_data = []
     for i, response in enumerate(responses):
-        # TODO: Log this?
-        # print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-        # Print city as well
-        # print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
-        # print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
-        
+        print(f"Gathered weather data from {city_names[i]}")
 
         # Process hourly data. The order of variables needs to be the same as requested.
         hourly = response.Hourly()
@@ -290,6 +278,8 @@ def get_historical_city_data(
         timezone = pytz.timezone(response.Timezone())
         timestart = datetime.datetime.fromtimestamp(hourly.Time(), tz=timezone)
         timeend = datetime.datetime.fromtimestamp(hourly.TimeEnd(), tz=timezone)
+
+        current_time = pd.Timestamp.now(tz=timezone)
 
         hourly_data = {
             "date": pd.date_range(
@@ -307,18 +297,13 @@ def get_historical_city_data(
             "latitude": response.Longitude(),
             "city": city_names[i]
         }
+        # Filter out the forecast rows.
+        current_time = pd.to_datetime(pd.Timestamp.now(tz=timezone).strftime('%Y-%m-%d %H:%M:%S'))
+        new_data = pd.DataFrame(data=hourly_data)
+        new_data['date'] = pd.to_datetime(new_data['date'])
+        new_data = new_data[new_data['date'] <= current_time]
+
         all_data.append(pd.DataFrame(data=hourly_data))
         
-
     hourly_dataframe = pd.concat(all_data, ignore_index=True)
     return hourly_dataframe
-
-
-def _check_if_dataset_exists(name: str) -> Union[str, None]:
-    """
-    Check if a dataset with the given name exists in the AI Catalog
-    Returns:
-        id (string) or None
-    """
-    datasets = dr.Dataset.list()
-    return next((dataset.id for dataset in datasets if dataset.name == name), None)

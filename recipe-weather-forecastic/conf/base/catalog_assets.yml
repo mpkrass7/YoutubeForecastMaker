@@ -1,0 +1,19 @@
+# =====================
+# Assets to be deleted
+# =====================
+
+notebook_id:
+  type: text.TextDataset
+  filepath: data/outputs/notebook_id.txt
+
+use_case_id:
+  type: text.TextDataset
+  filepath: data/outputs/use_case_id.txt
+
+deployment_id:
+  type: text.TextDataset
+  filepath: data/outputs/deployment_id.txt
+
+application_id:
+  type: kedro_datasets.text.TextDataset
+  filepath: data/outputs/streamlit_app/application_id.txt

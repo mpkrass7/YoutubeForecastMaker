@@ -23,8 +23,6 @@ if TYPE_CHECKING:
 def find_existing_dataset(
     dataset_name: str, use_cases: Optional[UseCaseLike] = None, timeout_secs: int = 60, 
 ) -> str:
-    print(dataset_name)
-    print(Dataset.list(use_cases=use_cases), "HERE")
     for dataset in Dataset.list(use_cases=use_cases):
         if dataset_name in dataset.name:
             waited_secs = 0

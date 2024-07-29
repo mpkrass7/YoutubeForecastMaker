@@ -1,0 +1,71 @@
+# This is a registry of literal parameters that can be used as node inputs.
+#
+# When defining node inputs in the pipeline, you can reference keys from this yaml to indicate
+# that the pipeline should map the literal defined here to the node's input at runtime.
+#
+# Kedro precedent defines that the keys in this yaml can be referenced as below when defining
+# node inputs:
+# e.g. "params:my_key_1", "params:my_key_2.my_sub_key_2"
+
+setup:
+  use_case: 
+    name: ${globals:project_name}
+  datasets:
+    timeseries_dataset_name: ${globals:project_name} Time Series Data
+  locations:
+    Boston:
+      Latitude: 42.3584
+      Longitude: -71.0598
+    San Francisco:
+      Latitude: 37.7749
+      Longitude: -122.4194
+    Columbus:
+      Latitude: 39.9612
+      Longitude: -82.9988
+    Washington DC:
+      Latitude: 38.8951
+      Longitude: -77.0364
+    Pittsburgh:
+      Latitude: 39.6295
+      Longitude: -79.9559
+    Copenhagen:
+      Latitude: 55.6759
+      Longitude: 12.5655
+    Kyiv:
+      Latitude: 50.4547
+      Longitude: 30.5238
+    London:
+      Latitude: 51.5085
+      Longitude: -0.1257
+    Singapore:
+      Latitude: 1.2897
+      Longitude: 103.8501
+    Tokyo:
+      Latitude: 35.6895
+      Longitude: 139.6917
+  weather_parameters:
+    hourly: # You can find more parameters here: https://open-meteo.com/en/docs
+            # If you add any more variables, you must change the code in notebooks/data_pull.ipynb
+            #   and in src/${globals:project_name}/pipelines/setup/nodes.py
+      - temperature_2m
+      - precipitation_probability
+      - precipitation
+      - uv_index
+    temperature_unit: fahrenheit
+    timezone: auto
+    past_days: 1
+    forecast_days: 1
+  scheduled_notebook:
+    notebook_name: ${globals:project_name} Data Extraction
+    job_name: ${globals:project_name} Scheduled Extraction
+    schedule:
+      minute:
+      - 0
+      hour:
+      - 0
+      dayOfMonth:
+      - '*'
+      month:
+      - '*'
+      dayOfWeek:
+      - '*'

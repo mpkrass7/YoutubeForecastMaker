@@ -150,6 +150,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             "project_id",
             "recommended_model_id",
             "deployment_id",
-            # "time_series_dataset_id"
         },
+        outputs={"application_id"}
     )

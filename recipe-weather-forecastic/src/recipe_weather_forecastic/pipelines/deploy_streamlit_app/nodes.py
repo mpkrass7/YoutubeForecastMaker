@@ -50,7 +50,6 @@ def get_dataset_id(dataset_name: str, use_case_id: str) -> Union[str, None]:
     """
 
     datasets = dr.Dataset.list(use_cases=use_case_id)
-    print(datasets, "datasets")
     return next((dataset.id for dataset in datasets if dataset.name == dataset_name), None)
 
 

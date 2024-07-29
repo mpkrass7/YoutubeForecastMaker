@@ -10,12 +10,12 @@ from kedro.pipeline.modular_pipeline import pipeline
 from datarobotx.idp.use_cases import get_or_create_use_case
 
 from .nodes import (
-                get_historical_city_data,
-                get_or_create_dataset_from_df,
-                get_or_update_notebook,
-                schedule_notebook,
-                instantiate_env
-                )
+    get_historical_city_data,
+    get_or_create_dataset_from_df,
+    get_or_update_notebook,
+    schedule_notebook,
+    instantiate_env
+)
 
 
 def create_pipeline(**kwargs) -> Pipeline:
@@ -67,7 +67,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             func=schedule_notebook,
             inputs={
                 "token": "params:credentials.datarobot.api_token",
-                "endpoint": "params:credentials.datarobot.endpoint",
                 "notebook_id": "notebook_id",
                 "schedule": "params:scheduled_notebook.schedule",
                 "title": "params:scheduled_notebook.job_name",
@@ -75,7 +74,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs=None
         ),
-        # To pass in: "time_series_dataset_id", "use_case_id"
         node(
             name="Instantiating_Env_Variables_into_Notebook_from_params_yml",
             func=instantiate_env,
@@ -88,23 +86,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             },
             outputs=None
         )
-        
-        # This would be useful in another pipeline?
-        # TODO: Not sure what else to do?
-        #   1. Create a notebook in the use case...
-        #   2. Copy the code from preprocessing?
-        # node(
-        #     name="update_timeseries_data",
-        #     func=update_or_create_timeseries_dataset,
-        #     inputs={
-        #         "endpoint": "params:credentials.datarobot.endpoint",
-        #         "token": "params:credentials.datarobot.api_token",
-        #         "name": "params:timeseries_dataset_name",
-        #         "data_frame": "time_series_data",
-        #         "use_cases": "use_case_id",
-        #     },
-        #     outputs=None
-        # ),
     ]
     pipeline_inst = pipeline(nodes)
     return pipeline(
@@ -115,6 +96,8 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.api_token",
         },
         outputs={
-            "time_series_dataset_id"
+            # TODO: should this be passed into deploy_forecast & deploy_streamlit?
+            "time_series_dataset_id",
+            "notebook_id"
         }
     )

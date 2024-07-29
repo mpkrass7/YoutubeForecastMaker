@@ -135,7 +135,6 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "datetime_partitioning_column": "params:project.datetime_partitioning_config.datetime_partition_column",
                 "prediction_interval": "params:deployment.prediction_interval",
                 "date_format": "date_format",
-                # "association_id": "params:deployment.association_id_column_name"
             },
             outputs=None,
         ),

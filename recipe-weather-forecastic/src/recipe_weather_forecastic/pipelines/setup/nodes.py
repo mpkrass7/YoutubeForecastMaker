@@ -39,10 +39,6 @@ def get_or_create_dataset_from_df(
 ) -> str:
     """Get or create a DR dataset from a dataframe with requested parameters.
 
-    Notes
-    -----
-    Records a checksum in the dataset name to allow future calls to this
-    function to validate whether a desired dataset already exists
     """
     import datarobot as dr
     dr.Client(token=token, endpoint=endpoint)  # type: ignore
@@ -57,8 +53,48 @@ def get_or_create_dataset_from_df(
         return str(dataset.id)
     else: 
         return dataset_id
+    
+def _check_if_notebook_exists(
+        token:str,
+        name:str,
+        use_case_id:str,
+) -> List:
+    """
+    """
+    import requests
+
+    headers = {'Authorization': f"Token {token}"}
+    response = requests.get(f'https://app.datarobot.com/api-gw/nbx/notebooks/?useCaseId={use_case_id}', headers=headers)
+
+    notebook_names = [(notebook['name'], notebook['id']) for notebook in response.json()["data"]]
+    matching_ids = [notebook_id for notebook_name, notebook_id in notebook_names if notebook_name == name]
+
+    return matching_ids
+
+def _compare_notebook_content(
+        notebook_json,
+        notebook_id: str,
+        token: str,
+) -> Union[None, str]:
+    """
+    """
+    import requests
+    import json
+    import difflib
+    headers = {'Authorization': f"Token {token}"}
+    response = requests.get(url=f"https://app.datarobot.com/api-gw/nbx/notebooks/{notebook_id}/cells/", headers=headers)
+
+    server_notebook_cells = ''.join([cell["source"] for cell in response.json()])
+    notebook_json = json.loads(notebook_json)
+    local_notebook_cells = ''.join([''.join(cell["source"]) for cell in notebook_json["cells"]])
+
+    if server_notebook_cells == local_notebook_cells:
+        return notebook_id
+    else:
+        return None
 
 # Need to add get functionality
+# change to get_update_or_replace... as in, delete replace
 def get_or_update_notebook(
         token: str,
         use_case_id: str,
@@ -73,32 +109,40 @@ def get_or_update_notebook(
     from logzero import logger
     import nbformat as nbf
 
-    headers = {
-        'Authorization': f"Token {token}",
-    }
-
-    url = "https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/"
-
     notebook_json = nbf.writes(notebook) #TODO: There may be a cleaner way to do this...
     binary_stream = BytesIO(notebook_json.encode('utf-8')).getvalue()
-    
-    payload = {'useCaseId': use_case_id}
-    files = [
-        ('file',(f'{name}.ipynb',binary_stream,'application/octet-stream'))
-    ]
-    headers = {
-        'Authorization': f'Bearer {token}',
-        'Cookie': 'datarobot_nextgen=0'
-    }
 
-    response = requests.request("POST", url, headers=headers, data=payload, files=files)
-    if response.status_code != 201:
-        print(response.text)
-        response.raise_for_status()
+    # First, check if a notebook with that name already exists
+    ids_with_matching_name = _check_if_notebook_exists(token, name, use_case_id)
+    id = None
+    for notebook_id in ids_with_matching_name:
+        id = _compare_notebook_content(notebook_json, notebook_id, token)
+        if id:
+            break
+    
+    if id:
+        logger.info(f"Your notebook titled {name} was already generated (use_case_id : {use_case_id})")
+        return id
     else:
-        logger.info(f"Your notebook titled {name} has been generated in your use case (id : {use_case_id})")
-        
-        return str(json.loads(response.text)['id'])
+        url = "https://app.datarobot.com/api-gw/nbx/notebookImport/fromFile/"
+
+        payload = {'useCaseId': use_case_id}
+
+        files = [
+            ('file',(f'{name}.ipynb',binary_stream,'application/octet-stream'))
+        ]
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Cookie': 'datarobot_nextgen=0'
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload, files=files)
+        if response.status_code != 201:
+            response.raise_for_status()
+        else:
+            logger.info(f"Your notebook titled {name} has been generated in your use case (use_case_id : {use_case_id})")
+            
+            return str(json.loads(response.text)['id'])
 
 def schedule_notebook(
         token: str,
@@ -166,9 +210,10 @@ def schedule_notebook(
     response = requests.request("POST", url, headers=headers, data=payload)
 
     if response.status_code != 201:
-        reason = json.loads(response.text)["message"]
-        print(reason)
-        response.raise_for_status()
+        if json.loads(response.text)["message"] == "You can only have one enabled schedule at a time.":
+            logger.info(f"Job already scheduled to run")
+        else:
+            response.raise_for_status()
     else:
         first_run = json.loads(response.text)["nextRunTime"]
         logger.info(f"Job scheduled to run first: {first_run} (UTC)")

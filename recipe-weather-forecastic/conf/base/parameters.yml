@@ -8,10 +8,10 @@
 # e.g. "params:my_key_1", "params:my_key_2.my_sub_key_2"
 
 setup:
-  use_case:
-    name: 
+  use_case: 
+    name: ${globals:project_name}
   datasets:
-    timeseries_dataset_name: Weather Time Series Data
+    timeseries_dataset_name: ${globals:project_name} Time Series Data
   locations:
     Boston:
       Latitude: 42.3584
@@ -52,10 +52,10 @@ setup:
     temperature_unit: fahrenheit
     timezone: auto
     past_days: 1
-    forecast_days: 0
+    forecast_days: 1
   scheduled_notebook:
-    notebook_name: Data Extraction
-    job_name: Scheduled Extraction
+    notebook_name: ${globals:project_name} Data Extraction
+    job_name: ${globals:project_name} Scheduled Extraction
     schedule:
       minute:
       - 0
@@ -68,18 +68,18 @@ setup:
       dayOfWeek:
       - '*'
 
-preprocessing:
-  use_case:
-    name: 
-  datasets:
-    timeseries_dataset_name: Weather Time Series Data
+# preprocessing:
+#   use_case:
+#     name: 
+#   datasets:
+#     timeseries_dataset_name: Weather Time Series Data
 
 deploy_forecast:
   use_case:
-    name: 
-  dataset_name: Weather Time Series Data
+    name: ${globals:project_name} 
+  dataset_name: ${globals:project_name} Time Series Data
   project:
-    name: {{ cookiecutter.project_name }} Project 
+    name: ${globals:project_name} Project 
     analyze_and_model_config:
       metric: RMSE
       mode: quick
@@ -97,14 +97,14 @@ deploy_forecast:
     advanced_options_config:
       seed: 42
   registered_model:
-    name: {{ cookiecutter.project_name }}
+    name: ${globals:project_name}
   deployment:
-    label: {{ cookiecutter.project_name }}
+    label: ${globals:project_name}
     description: A fantastically generated forecast from Kedro, hurray!
     prediction_interval: 80
     # association_id_column_name: association_id
   retraining_policy:
-    name: Retrain on Accuracy Decline
+    name: ${globals:project_name} Retrain on Accuracy Decline
     retraining_settings:
       autopilotOptions:
         blendBestModels: false
@@ -161,13 +161,13 @@ deploy_forecast:
       - '*'
       dayOfWeek:
       - '*'
-    name: Batch Prediction Job for Retraining
+    name: ${globals:project_name} Batch Prediction Job for Retraining
 
 
 deploy_streamlit_app:
-  prediction_dataset_name: Weather Time Series Data
-  custom_app_name: {{ cookiecutter.project_name }} Streamlit
-  environment_name: {{ cookiecutter.project_name }} Streamlit Environment
+  prediction_dataset_name: ${globals:project_name} Time Series Data
+  custom_app_name: ${globals:project_name} Streamlit
+  environment_name: ${globals:project_name} Streamlit Environment
   environment_use_cases:
   - customApplication
   page_title: Weather Forecasting

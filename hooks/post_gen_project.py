@@ -59,20 +59,14 @@ if not isinstance(yaml_content, CommentedMap):
 # Pro: I think it prevents user error
 # Con: It doesn't allow user to specify names?
 yaml_content['setup']['use_case']['name'] = usecase_name
-# yaml_content['setup']["datasets"]['timeseries_dataset_name'] = usecase_name + ' Raw Time Series Data'
-# yaml_content['setup']['metadataset_name'] = usecase_name + ' Meta Data'
 
 yaml_content['preprocessing']['use_case']['name'] = usecase_name
-# yaml_content['preprocessing']['timeseries_dataset_name'] = usecase_name + ' Raw Time Series Data'
-# yaml_content['preprocessing']['metadataset_name'] = usecase_name + ' Meta Data'
-# yaml_content['preprocessing']['modeling_dataset_name'] = usecase_name + ' Modeling Data'
 
+# 
 yaml_content['deploy_forecast']['use_case']['name'] = usecase_name
-# yaml_content['deploy_forecast']['dataset_name'] = usecase_name + ' Modeling Data'
 yaml_content['deploy_forecast']['retraining_policy']['name'] = usecase_name + ' Retraining Policy'
 yaml_content['deploy_forecast']['batch_prediction_job_definition']['name'] = usecase_name + ' Prediction Job'
 
-# yaml_content['deploy_streamlit_app']['prediction_dataset_name'] = usecase_name + ' Modeling Data'
 
 print("Updating credentials.yml")
 with open(file_path, 'w') as file:

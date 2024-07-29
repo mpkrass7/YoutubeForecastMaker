@@ -10,24 +10,23 @@ from the Kedro defaults. For further information, including these default values
 https://docs.kedro.org/en/stable/kedro_project_setup/settings.html."""
 
 # Instantiated project hooks.
-# For example, after creating a hooks.py and defining a ProjectHooks class there, do
-# from {{cookiecutter.python_package}}.hooks import ProjectHooks
-from datarobotx.idp.common.credentials_hooks import CredentialsHooks
-from datarobotx.idp.common.checkpoint_hooks import CheckpointHooks
-{% if cookiecutter.analytics_trace_id %}
 from datarobotx.idp.common.analytics_hooks import AnalyticsHooks
-{% endif %}
-
+from datarobotx.idp.common.checkpoint_hooks import CheckpointHooks
+from datarobotx.idp.common.credentials_hooks import CredentialsHooks
 
 # Hooks are executed in a Last-In-First-Out (LIFO) order.
 # HOOKS = (ProjectHooks(),)
+
+# Block for analytics trace
+
 HOOKS = (CredentialsHooks(), CheckpointHooks())
-{% if cookiecutter.analytics_trace_id %}
+
 # Comment the below line out if you do not wish for recipe usage analytics
 # to be reported to DR. No customer code or datasets are included in the
 # reported analytics.
-HOOKS = (AnalyticsHooks("{{ cookiecutter.analytics_trace_id }}"),) + HOOKS
-{% endif %}
+analytics_trace_id = None
+if analytics_trace_id is not None:
+    HOOKS = (AnalyticsHooks(analytics_trace_id),) + HOOKS
 
 # Installed plugins for which to disable hook auto-registration.
 # DISABLE_HOOKS_FOR_PLUGINS = ("kedro-viz",)
@@ -49,12 +48,12 @@ from kedro.config import OmegaConfigLoader  # noqa: E402
 CONFIG_LOADER_CLASS = OmegaConfigLoader
 # Keyword arguments to pass to the `CONFIG_LOADER_CLASS` constructor.
 CONFIG_LOADER_ARGS = {
-      "base_env": "base",
-      "default_run_env": "local",
-#       "config_patterns": {
-#           "spark" : ["spark*/"],
-#           "parameters": ["parameters*", "parameters*/**", "**/parameters*"],
-#       }
+    "base_env": "base",
+    "default_run_env": "local",
+    #       "config_patterns": {
+    #           "spark" : ["spark*/"],
+    #           "parameters": ["parameters*", "parameters*/**", "**/parameters*"],
+    #       }
 }
 
 # Class that manages Kedro's library components.

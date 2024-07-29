@@ -36,7 +36,7 @@ loggers:
   kedro:
     level: INFO
 
-  {{ cookiecutter.python_package }}:
+  recipe_weather_forecastic:
     level: INFO
 
 root:

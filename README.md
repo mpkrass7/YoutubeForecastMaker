@@ -47,3 +47,13 @@ This template allows users to connect their data to DataRobot's functionality se
    ```
 
 8. Sit back and watch your Datarobot deploy your model, your deployment, and your custom application. 
+
+## For contributors
+
+1. Install datarobotx-idp locally
+   ```bash
+   git clone https://github.com/datarobot-community/datarobotx-idp
+   cd datarobotx-idp
+   pip install -e .
+   ```
+

@@ -20,6 +20,11 @@ data/**
 # keep also the example dataset
 !data/01_raw/*
 
+# Ignore datarobotx-idp directory
+recipe-weather-forecastic/src/datarobotx-idp/
+
+# Ignore globals.yml file
+recipe-weather-forecastic/conf/base/globals.yml
 
 ##########################
 # Common files
@@ -160,3 +165,9 @@ logs/
 
 # datarobotx
 datarobotx/
+
+# data
+recipe-template/data
+recipe-template/conf/base/globals.yml
+recipe-template/conf/local/credentials.yml
+recipe-template/stats.json

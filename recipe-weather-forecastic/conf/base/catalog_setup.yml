@@ -11,5 +11,3 @@
 setup.setup_notebook:
   type: recipe_weather_forecastic.datasets.notebook_dataset.JupyterNotebookDataSet
   filepath: notebooks/data_pull.ipynb
-
-g

@@ -57,3 +57,16 @@ This template allows users to connect their data to DataRobot's functionality se
    pip install -e .
    ```
 
+2. Install kedro, install requirements from requirements.txt
+
+3. Fill in your credentials.yml, ensure globals.yml is filled in.
+
+4. Run
+   ```bash
+   kedro run -p "setup"
+   ```
+
+5. Once this is complete, run 
+   ```bash
+   kedro run
+   ```

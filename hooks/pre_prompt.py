@@ -17,13 +17,14 @@ shutil.copytree(
     dirs_exist_ok=True,
 )
 shutil.move(
-    "{{ cookiecutter.repo_name }}/src/recipe-weather-forecastic",
+    "{{ cookiecutter.repo_name }}/src/recipe_weather_forecastic",
     "{{ cookiecutter.repo_name }}/src/{{ cookiecutter.python_package }}",
 )
 shutil.move(
-    "{{ cookiecutter.repo_name }}/include/recipe-weather-forecastic",
+    "{{ cookiecutter.repo_name }}/include/recipe_weather_forecastic",
     "{{ cookiecutter.repo_name }}/include/{{ cookiecutter.python_package }}",
 )
+
 # templatize conf files
 for filename in glob.iglob("{{ cookiecutter.repo_name }}/conf/**/**", recursive=True):
     file = pathlib.Path(filename)

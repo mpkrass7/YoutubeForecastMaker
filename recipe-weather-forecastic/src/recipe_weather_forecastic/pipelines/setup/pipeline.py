@@ -14,7 +14,7 @@ from .nodes import (
     get_or_create_dataset_from_df,
     get_or_update_notebook,
     schedule_notebook,
-    instantiate_env
+    instantiate_env,
 )
 
 
@@ -27,6 +27,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
                 "name": "params:use_case.name",
+                "description": "params:use_case.description",
             },
             outputs="use_case_id",
         ),
@@ -35,7 +36,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             func=get_historical_city_data,
             inputs={
                 "locations": "params:locations",
-                "parameters": "params:weather_parameters"
+                "parameters": "params:weather_parameters",
             },
             outputs="weather_df",
         ),
@@ -47,9 +48,9 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "token": "params:credentials.datarobot.api_token",
                 "name": "params:datasets.timeseries_dataset_name",
                 "data_frame": "weather_df",
-                "use_cases": "use_case_id"
+                "use_cases": "use_case_id",
             },
-            outputs="time_series_dataset_id"
+            outputs="time_series_dataset_id",
         ),
         node(
             name="upload_notebook_to_datarobot",
@@ -60,7 +61,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "notebook": "setup_notebook",
                 "name": "params:scheduled_notebook.notebook_name",
             },
-            outputs="notebook_id"
+            outputs="notebook_id",
         ),
         node(
             name="put_notebook_on_scheduled_job",
@@ -72,20 +73,20 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "title": "params:scheduled_notebook.job_name",
                 "use_case_id": "use_case_id",
             },
-            outputs=None
+            outputs=None,
         ),
         node(
             name="Instantiating_Env_Variables_into_Notebook_from_params_yml",
             func=instantiate_env,
             inputs={
-                "token":"params:credentials.datarobot.api_token",
+                "token": "params:credentials.datarobot.api_token",
                 "notebook_id": "notebook_id",
                 "locations": "params:locations",
                 "parameters": "params:weather_parameters",
-                "modeling_dataset_name": "params:datasets.timeseries_dataset_name"
+                "modeling_dataset_name": "params:datasets.timeseries_dataset_name",
             },
-            outputs=None
-        )
+            outputs=None,
+        ),
     ]
     pipeline_inst = pipeline(nodes)
     return pipeline(
@@ -98,6 +99,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         outputs={
             # TODO: should this be passed into deploy_forecast & deploy_streamlit?
             "time_series_dataset_id",
-            "notebook_id"
-        }
+            "use_case_id",
+            "notebook_id",
+        },
     )

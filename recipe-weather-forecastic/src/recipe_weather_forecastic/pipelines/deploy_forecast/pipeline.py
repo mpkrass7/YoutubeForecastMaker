@@ -10,7 +10,6 @@ from kedro.pipeline.modular_pipeline import pipeline
 
 import datarobot as dr
 from datarobotx.idp.autopilot import get_or_create_autopilot_run
-from datarobotx.idp.datasets import get_or_create_dataset_from_df
 from datarobotx.idp.deployments import (
     get_replace_or_create_deployment_from_registered_model,
 )
@@ -18,35 +17,24 @@ from datarobotx.idp.deployments import (
 from datarobotx.idp.registered_model_versions import (
     get_or_create_registered_leaderboard_model_version,
 )
-from datarobotx.idp.use_cases import get_or_create_use_case
 from datarobotx.idp.retraining_policies import get_update_or_create_retraining_policy
 
-from .nodes import (ensure_deployment_settings, 
-                    put_forecast_distance_into_registered_model_name,
-                    find_existing_dataset,
-                    get_date_format,
-                    setup_batch_prediction_job_definition)
+from .nodes import (
+    ensure_deployment_settings,
+    put_forecast_distance_into_registered_model_name,
+    find_existing_dataset,
+    get_date_format,
+    setup_batch_prediction_job_definition,
+)
+
 
 def create_pipeline(**kwargs) -> Pipeline:
     nodes = [
         node(
-            name="make_datarobot_use_case",
-            func=get_or_create_use_case,
-            inputs={
-                "endpoint": "params:credentials.datarobot.endpoint",
-                "token": "params:credentials.datarobot.api_token",
-                "name": "params:use_case.name",
-            },
-            outputs="use_case_id",
-        ),
-        node(
             name="get_modeling_dataset_id",
             func=find_existing_dataset,
-            inputs={
-                "dataset_name": "params:dataset_name",
-                "use_cases": "use_case_id"
-            },
-            outputs="preprocessed_timeseries_data_id", 
+            inputs={"dataset_name": "params:dataset_name", "use_cases": "use_case_id"},
+            outputs="preprocessed_timeseries_data_id",
         ),
         # node(
         #     name="set_known_in_advance",
@@ -72,7 +60,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "advanced_options_config": "params:project.advanced_options_config",
                 "use_case": "use_case_id",
             },
-            outputs="project_id"
+            outputs="project_id",
         ),
         node(
             name="get_recommended_model",
@@ -111,7 +99,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "registered_model_name": "modified_registered_model_name",
                 "label": "params:deployment.label",
                 "description": "params:deployment.description",
-                "default_prediction_server_id": "params:credentials.datarobot.default_prediction_server_id",
+                "prediction_server_id": "params:credentials.datarobot.prediction_server_id",
             },
             outputs="deployment_id",
         ),
@@ -149,24 +137,30 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "enabled": "params:batch_prediction_job_definition.enabled",
                 "name": "params:batch_prediction_job_definition.name",
                 "batch_prediction_job": "params:batch_prediction_job_definition.batch_prediction_job",
-                "schedule": "params:batch_prediction_job_definition.schedule"
+                "schedule": "params:batch_prediction_job_definition.schedule",
             },
-            outputs=None
+            outputs=None,
         ),
         node(
             name="set_up_retraining_job",
-            func=lambda endpoint, token, deployment_id, name, dataset_id, retraining_settings: get_update_or_create_retraining_policy(
-                    endpoint, token, deployment_id, name, dataset_id, **retraining_settings),
+            func=lambda endpoint,
+            token,
+            deployment_id,
+            name,
+            dataset_id,
+            retraining_settings: get_update_or_create_retraining_policy(
+                endpoint, token, deployment_id, name, dataset_id, **retraining_settings
+            ),
             inputs={
                 "endpoint": "params:credentials.datarobot.endpoint",
                 "token": "params:credentials.datarobot.api_token",
                 "deployment_id": "deployment_id",
                 "name": "params:retraining_policy.name",
                 "dataset_id": "preprocessed_timeseries_data_id",
-                "retraining_settings": "params:retraining_policy.retraining_settings"
+                "retraining_settings": "params:retraining_policy.retraining_settings",
             },
-            outputs=None
-        )
+            outputs=None,
+        ),
     ]
     pipeline_inst = pipeline(nodes)
     return pipeline(
@@ -175,10 +169,10 @@ def create_pipeline(**kwargs) -> Pipeline:
         parameters={
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
-            "params:credentials.datarobot.default_prediction_server_id",
+            "params:credentials.datarobot.prediction_server_id",
         },
+        inputs={"use_case_id"},
         outputs={
-            "use_case_id",
             "project_id",
             "recommended_model_id",
             "deployment_id",

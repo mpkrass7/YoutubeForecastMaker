@@ -71,7 +71,10 @@ def delete_assets(
     except Exception:
         _write_exception_message(use_case_id, "use case")
 
-    headers = {'Authorization': f"Token {token}"}
-    response = requests.delete(url=f"https://app.datarobot.com/api-gw/nbx/notebooks/{notebook_id}/", headers=headers)
+    headers = {"Authorization": f"Token {token}"}
+    response = requests.delete(
+        url=f"https://app.datarobot.com/api-gw/nbx/notebooks/{notebook_id}/",
+        headers=headers,
+    )
     if response.status_code != 204:
         _write_exception_message(notebook_id, "notebook")

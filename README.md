@@ -1,6 +1,6 @@
 # Weather Forecastic
 
-This template allows users to connect their data to DataRobot's functionality seamlessly with automated data updates and real-time forecasting. We deploy a model trained on your data, then create a streamlit application for clear visualizations of the deployment's capabilities. We can ensure accurate model performance through scheduled batch predictions and automatic retraining if our model's accuracy drops below a set threshold.
+Weather Forecastic allows users to track and predict their favorite cities' weather using Datarobot. This template allows users to connect their data to DataRobot's functionality seamlessly with automated data updates and real-time forecasting. We deploy a model trained on your data, then create a streamlit application for clear visualizations of the deployment's capabilities. We can ensure accurate model performance through scheduled batch predictions and automatic retraining if our model's accuracy drops below a set threshold.
 
 ## Getting started -- Pulling Data
 1. Create a Use Case on [DataRobot](app.datarobot.com)
@@ -12,24 +12,21 @@ This template allows users to connect their data to DataRobot's functionality se
    - Click the blue "Add" button
 
 3. Open up a terminal (in the bottom-left corner you'll see a ">_" icon) and type the following commands.
-   - The project name does not matter.
    ```bash
-   pip install uv
-   ```
-   ```bash
-   uv pip install kedro
+   pip install kedro
    ```
    ```bash
    kedro new -n $PROJECT_NAME$ --starter=https://github.com/j-beastman/WeatherForecastic.git --checkout master
    ```
    ```bash
-   uv pip install -r $PROJECT_NAME$/requirements.txt
+   pip install -r $PROJECT_NAME$/requirements.txt
    ```
 
-4. Go into this folder, then conf/local/credentials.yml
+4. Go into this folder, then `conf/local/credentials.yml`
    - Fill in your datarobot and OpenAI credentials
+   - Note: Don't input the credentials from your notebook.
 
-5. Navigate to conf/base/parameters.yml
+5. Navigate to `conf/base/parameters.yml`
    - Add in the cities along with the weather features you want to collect
 
 6. Now, in the terminal type 
@@ -70,3 +67,12 @@ This template allows users to connect their data to DataRobot's functionality se
    ```bash
    kedro run
    ```
+
+### Running Tests
+To ensure that your assets are set up properly, we have tests set up.
+1. `pip install pytest pytest-cov`
+
+2. Ensure you're at the root of the directory where the project is being run from...
+For this project --> you should be in `.../recipe-weather-forecastic/recipe-weather-forecastic`
+
+3. run `pytest`

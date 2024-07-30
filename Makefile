@@ -10,3 +10,7 @@ apply-copyright:
 fix-licenses: apply-copyright
 
 check-licenses: copyright-check
+
+lint:
+	ruff format --check recipe-weather-forecastic/.
+	ruff check recipe-weather-forecastic/.

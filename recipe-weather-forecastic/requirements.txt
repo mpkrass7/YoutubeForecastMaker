@@ -1,4 +1,4 @@
-kedro=={{ cookiecutter.kedro_version }}
+kedro~=0.19.6
 kedro-datasets~=2.1.0
 kedro-viz
 ruff==0.3.0
@@ -9,7 +9,6 @@ pandas==2.2.0
 streamlit==1.31.0
 
 nbformat
-logzero
 requests
 openmeteo_requests
 pytz

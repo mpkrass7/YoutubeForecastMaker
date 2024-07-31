@@ -99,7 +99,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "registered_model_name": "modified_registered_model_name",
                 "label": "params:deployment.label",
                 "description": "params:deployment.description",
-                "prediction_server_id": "params:credentials.datarobot.prediction_server_id",
+                "default_prediction_server_id": "params:credentials.datarobot.prediction_server_id",
             },
             outputs="deployment_id",
         ),

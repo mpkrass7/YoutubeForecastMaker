@@ -36,3 +36,7 @@ header {
 textarea {
     background-color: #2A3036;
 }
+
+.forecast-image {
+    height: 300px; 
+}

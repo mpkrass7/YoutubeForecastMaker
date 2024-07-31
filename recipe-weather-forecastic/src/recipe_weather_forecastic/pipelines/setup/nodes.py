@@ -336,9 +336,14 @@ def get_historical_city_data(
         )
         new_data = pd.DataFrame(data=hourly_data)
         new_data["date"] = pd.to_datetime(new_data["date"])
-        new_data = new_data[new_data["date"] <= current_time]
+        logger.info(f"Current time: {current_time}")
 
-        all_data.append(pd.DataFrame(data=hourly_data))
+        new_data = new_data[new_data["date"] <= current_time]
+        new_data = new_data.sort_values(by='date', ascending=True)
+
+        logger.info(f"Most recent time in dataframe={new_data['date'].iloc[-1]}")
+
+        all_data.append(pd.DataFrame(data=new_data))
 
     hourly_dataframe = pd.concat(all_data, ignore_index=True)
     return hourly_dataframe

@@ -14,3 +14,6 @@ check-licenses: copyright-check
 lint:
 	ruff format --check recipe-weather-forecastic/.
 	ruff check recipe-weather-forecastic/.
+
+run_app_locally:
+	cd recipe-weather-forecastic/include/recipe_weather_forecastic/app && streamlit run app.py

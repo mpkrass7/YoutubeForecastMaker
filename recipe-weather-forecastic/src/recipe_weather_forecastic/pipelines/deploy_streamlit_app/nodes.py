@@ -10,6 +10,7 @@ from typing import Any, Dict, List, TYPE_CHECKING, Union
 
 import tempfile
 import datarobot as dr
+from pathlib import Path
 
 if TYPE_CHECKING:
     import pathlib
@@ -36,25 +37,6 @@ def prepare_yaml_content(*args: Any, **kwargs: Any) -> Union[Dict[str, Any], Lis
         return list(args)
     else:
         return kwargs
-
-
-def get_dataset_id(dataset_name: str, use_case_id: str) -> Union[str, None]:
-    """Retrieve the ID of the dataset
-
-    Parameters
-    ----------
-    dataset_name : str
-
-    Returns
-    -------
-    str:
-        The ID of the scoring dataset
-    """
-
-    datasets = dr.Dataset.list(use_cases=use_case_id)
-    return next(
-        (dataset.id for dataset in datasets if dataset.name == dataset_name), None
-    )
 
 
 def get_or_create_execution_environment_version_with_secrets(
@@ -165,85 +147,160 @@ def log_outputs(
     logger.info(msg)
 
 
+# def make_app_assets(
+#     app_py: str,
+#     helpers_py: str,
+#     app_parameters_yml: Any,
+#     requirements: str,
+#     dockerfile: str,
+#     logo: str,
+#     style_css: str,
+#     config_toml: str,
+#     secrets_toml: str,
+# ) -> tempfile.TemporaryDirectory:
+#     """Assemble directory of streamlit assets to be uploaded for a new DR execution environment.
+
+#     Parameters
+#     ----------
+#     app_py : str
+#         app.py contents to be included in execution environment
+#     helpers_py : str
+#         helpers.py contents to be included in execution environment
+#     app_parameters_yaml : dict or list
+#         app_parameters.yaml contents to be included in execution environment
+#     requirements_txt : str
+#         requirements.txt contents to be included in execution environment
+#     dockerfile : str
+#         Dockerfile contents to be included in execution environment
+#     logo : str
+#         location of logo to be included in execution environment
+#     style_css : str
+#         style.css contents to be included in execution environment
+#     config_toml : str
+#         config.toml contents to be included in execution environment
+#     secrets_toml : str
+#         secrets.toml contents to be included in execution environment
+
+#     Returns
+#     -------
+#     tempfile.TemporaryDirectory :
+#         Temporary directory containing the contents to be uploaded to DR
+#     """
+#     import os
+#     import pathlib
+#     import tempfile
+
+#     import yaml
+
+#     d = tempfile.TemporaryDirectory()
+#     path_to_d = d.name
+
+#     files = zip(
+#         [
+#             app_py,
+#             helpers_py,
+#             yaml.dump(app_parameters_yml),
+#             requirements,
+#             dockerfile,
+#             style_css,
+#         ],
+#         [
+#             "app.py",
+#             "helpers.py",
+#             "app_parameters.yaml",
+#             "requirements.txt",
+#             "Dockerfile",
+#             "style.css",
+#         ],
+#     )
+#     for file, name in files:
+#         with open(os.path.join(path_to_d, name), "w") as f:
+#             f.write(file)
+
+#     logo.save(os.path.join(path_to_d, "DataRobot.png"))
+
+#     dot_streamlit_dir = pathlib.Path(d.name) / ".streamlit"
+#     dot_streamlit_dir.mkdir()
+
+#     with open(dot_streamlit_dir / "config.toml", "w") as f:
+#         f.write(config_toml)
+
+#     with open(dot_streamlit_dir / "secrets.toml", "w") as f:
+#         f.write(secrets_toml)
+
+#     return d
+
+
 def make_app_assets(
-    app_py: str,
-    helpers_py: str,
-    app_parameters_yml: Any,
-    requirements: str,
-    dockerfile: str,
-    logo: str,
-    style_css: str,
-    config_toml: str,
-    secrets_toml: str,
+    folder_path: Path, app_parameters_yaml: Any
 ) -> tempfile.TemporaryDirectory:
-    """Assemble directory of streamlit assets to be uploaded for a new DR execution environment.
+    """
+    Assemble directory of streamlit assets to be uploaded for a new DR execution environment,
+    ignoring files and directories specified in a .datarobot_ignore file.
 
     Parameters
     ----------
-    app_py : str
-        app.py contents to be included in execution environment
-    helpers_py : str
-        helpers.py contents to be included in execution environment
+    folder_path : Path
+        Path to the directory containing the streamlit app assets.
     app_parameters_yaml : dict or list
-        app_parameters.yaml contents to be included in execution environment
-    requirements_txt : str
-        requirements.txt contents to be included in execution environment
-    dockerfile : str
-        Dockerfile contents to be included in execution environment
-    logo : str
-        location of logo to be included in execution environment
-    style_css : str
-        style.css contents to be included in execution environment
-    config_toml : str
-        config.toml contents to be included in execution environment
-    secrets_toml : str
-        secrets.toml contents to be included in execution environment
+        app_parameters.yaml contents to be included in execution environment.
 
     Returns
     -------
     tempfile.TemporaryDirectory :
-        Temporary directory containing the contents to be uploaded to DR
+        Temporary directory containing the contents to be uploaded to DR.
     """
-    import os
-    import pathlib
-    import tempfile
-
+    import pathspec
+    import shutil
     import yaml
 
-    d = tempfile.TemporaryDirectory()
-    path_to_d = d.name
+    # Create a temporary directory
+    temp_dir = tempfile.TemporaryDirectory()
+    temp_path = Path(temp_dir.name)
 
-    files = zip(
-        [
-            app_py,
-            helpers_py,
-            yaml.dump(app_parameters_yml),
-            requirements,
-            dockerfile,
-            style_css,
-        ],
-        [
-            "app.py",
-            "helpers.py",
-            "app_parameters.yaml",
-            "requirements.txt",
-            "Dockerfile",
-            "style.css",
-        ],
+    # Read and parse the .datarobot_ignore file
+    try:
+        with open(folder_path / ".datarobotignore") as f:
+            ignore_spec_text = f.readlines()
+        ignore_spec = pathspec.PathSpec.from_lines("gitwildmatch", ignore_spec_text)
+    except FileNotFoundError:
+        ignore_spec = pathspec.PathSpec.from_lines("gitwildmatch", [])
+
+    # Define the ignore function using pathspec
+    def ignore_patterns(path, names):
+        # Convert path to Path object for relative path calculation
+        full_path = Path(path)
+        return [
+            name
+            for name in names
+            if ignore_spec.match_file((full_path / name).relative_to(folder_path))
+        ]
+
+    # Copy everything from the folder_path to the temporary directory using the ignore function
+    shutil.copytree(folder_path, temp_path, dirs_exist_ok=True, ignore=ignore_patterns)
+
+    # Save the app_parameters_yaml contents into a yaml file in the temporary directory
+    yaml_file_path = temp_path / "app_parameters.yaml"
+    with open(yaml_file_path, "w") as file:
+        yaml.dump(app_parameters_yaml, file)
+
+    return temp_dir
+
+
+def get_dataset_id(dataset_name: str, use_case_id: str) -> Union[str, None]:
+    """Retrieve the ID of the dataset
+
+    Parameters
+    ----------
+    dataset_name : str
+
+    Returns
+    -------
+    str:
+        The ID of the scoring dataset
+    """
+
+    datasets = dr.Dataset.list(use_cases=use_case_id)
+    return next(
+        (dataset.id for dataset in datasets if dataset.name == dataset_name), None
     )
-    for file, name in files:
-        with open(os.path.join(path_to_d, name), "w") as f:
-            f.write(file)
-
-    logo.save(os.path.join(path_to_d, "DataRobot.png"))
-
-    dot_streamlit_dir = pathlib.Path(d.name) / ".streamlit"
-    dot_streamlit_dir.mkdir()
-
-    with open(dot_streamlit_dir / "config.toml", "w") as f:
-        f.write(config_toml)
-
-    with open(dot_streamlit_dir / "secrets.toml", "w") as f:
-        f.write(secrets_toml)
-
-    return d

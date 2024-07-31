@@ -5,23 +5,24 @@
 # affiliates.
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
-from __future__ import annotations #Keep at top of file
+from __future__ import annotations  # Keep at top of file
 
 import time
-from typing import Any, List, TYPE_CHECKING, Union, Optional, Dict
+from typing import TYPE_CHECKING, Optional
 
 from datarobot.models.use_cases.utils import UseCaseLike
-from datarobot import Dataset 
+from datarobot import Dataset
 
 from datarobotx.idp.batch_predictions import get_update_or_create_batch_prediction_job
+
 if TYPE_CHECKING:
-    import tempfile
-    import datarobot as dr
-    import pandas as pd
+    pass
 
 
 def find_existing_dataset(
-    dataset_name: str, use_cases: Optional[UseCaseLike] = None, timeout_secs: int = 60, 
+    dataset_name: str,
+    use_cases: Optional[UseCaseLike] = None,
+    timeout_secs: int = 60,
 ) -> str:
     for dataset in Dataset.list(use_cases=use_cases):
         if dataset_name in dataset.name:
@@ -39,12 +40,15 @@ def find_existing_dataset(
 
     raise KeyError("No matching dataset found")
 
-def put_forecast_distance_into_registered_model_name(registered_model_name: str, forecast_window_start: str, forecast_window_end: str) -> str:
+
+def put_forecast_distance_into_registered_model_name(
+    registered_model_name: str, forecast_window_start: str, forecast_window_end: str
+) -> str:
     """Get or create a registered model for the time series model.
 
     The registered model name is comprised of the original model name,
     the start of the forecast window, and the end of the forecast window.
-    
+
     Parameters
     ----------
     registered_model_name : str
@@ -53,21 +57,22 @@ def put_forecast_distance_into_registered_model_name(registered_model_name: str,
         The start of the forecast window
     forecast_window_end : str
         The end of the forecast window
-    
+
     Returns
     -------
     str
         The updated registered model name
     """
-    
+
     return (
-        registered_model_name 
-        + " (" 
-        + str(forecast_window_start) 
-        + ", " 
-        + str(forecast_window_end) 
+        registered_model_name
+        + " ("
+        + str(forecast_window_start)
+        + ", "
+        + str(forecast_window_end)
         + ")"
     )
+
 
 def get_date_format(
     endpoint: str,
@@ -81,6 +86,7 @@ def get_date_format(
     url = "projects/{}/datetimePartitioning".format(project_id)
     response = client.get(url).json()
     return response["dateFormat"]
+
 
 def ensure_deployment_settings(
     endpoint: str,
@@ -149,6 +155,7 @@ def ensure_deployment_settings(
 
     return
 
+
 def setup_batch_prediction_job_definition(
     endpoint: str,
     token: str,
@@ -157,7 +164,7 @@ def setup_batch_prediction_job_definition(
     enabled: bool,
     batch_prediction_job: dict,
     name: str,
-    schedule: Optional[str | None]
+    schedule: Optional[str | None],
 ):
     """Set up BatchPredictionJobDefinition for deployment to enable informed retraining.
 
@@ -176,15 +183,18 @@ def setup_batch_prediction_job_definition(
         a specific interval.
     """
     import datarobot as dr
+
     dr.Client(token=token, endpoint=endpoint)  # type: ignore
 
     batch_prediction_job["intake_settings"]["datasetId"] = dataset_id
     batch_prediction_job["deploymentId"] = deployment_id
 
-    get_update_or_create_batch_prediction_job(endpoint=endpoint,
-                                          token=token,
-                                          deployment_id=deployment_id,
-                                          batch_prediction_job=batch_prediction_job,
-                                          enabled=enabled,
-                                          name=name,
-                                          schedule=schedule)
+    get_update_or_create_batch_prediction_job(
+        endpoint=endpoint,
+        token=token,
+        deployment_id=deployment_id,
+        batch_prediction_job=batch_prediction_job,
+        enabled=enabled,
+        name=name,
+        schedule=schedule,
+    )

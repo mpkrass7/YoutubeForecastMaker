@@ -14,6 +14,7 @@ import datarobot as dr
 if TYPE_CHECKING:
     import pathlib
 
+
 def prepare_yaml_content(*args: Any, **kwargs: Any) -> Union[Dict[str, Any], List[Any]]:
     """Passthrough node for gathering content to be serialized to yaml from upstream node(s).
 
@@ -35,14 +36,15 @@ def prepare_yaml_content(*args: Any, **kwargs: Any) -> Union[Dict[str, Any], Lis
         return list(args)
     else:
         return kwargs
-    
+
+
 def get_dataset_id(dataset_name: str, use_case_id: str) -> Union[str, None]:
     """Retrieve the ID of the dataset
 
     Parameters
     ----------
     dataset_name : str
-    
+
     Returns
     -------
     str:
@@ -50,8 +52,9 @@ def get_dataset_id(dataset_name: str, use_case_id: str) -> Union[str, None]:
     """
 
     datasets = dr.Dataset.list(use_cases=use_case_id)
-    return next((dataset.id for dataset in datasets if dataset.name == dataset_name), None)
-
+    return next(
+        (dataset.id for dataset in datasets if dataset.name == dataset_name), None
+    )
 
 
 def get_or_create_execution_environment_version_with_secrets(
@@ -86,13 +89,13 @@ def get_or_create_execution_environment_version_with_secrets(
         get_or_create_execution_environment_version,
     )
 
-    secrets_file = (secrets_template
-                    .replace("<azure_endpoint>", azure_endpoint)
-                    .replace("<azure_api_key>", azure_api_key)
-                    .replace("<azure_api_version>", azure_api_version)
-                    .replace("<datarobot_endpoint>", endpoint)
-                    .replace("<datarobot_api_token>", token)
-                    )
+    secrets_file = (
+        secrets_template.replace("<azure_endpoint>", azure_endpoint)
+        .replace("<azure_api_key>", azure_api_key)
+        .replace("<azure_api_version>", azure_api_version)
+        .replace("<datarobot_endpoint>", endpoint)
+        .replace("<datarobot_api_token>", token)
+    )
 
     # Overwrite the placeholder secrets.toml with real secrets
     with open(app_assets / ".streamlit/secrets.toml", "w") as f:
@@ -111,7 +114,7 @@ def log_outputs(
     application_id: str,
     project_name: str,
     deployment_name: str,
-    app_name: str
+    app_name: str,
 ) -> None:
     """Log URLs for DR deployments and app.
 
@@ -160,6 +163,7 @@ def log_outputs(
         f"{app_name}[/link]"
     )
     logger.info(msg)
+
 
 def make_app_assets(
     app_py: str,

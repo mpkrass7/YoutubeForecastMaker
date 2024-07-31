@@ -10,9 +10,12 @@
 setup:
   use_case: 
     name: ${globals:project_name}
+    description:
   datasets:
     timeseries_dataset_name: ${globals:project_name} Time Series Data
   locations:
+    # You can find longitude and latitude of your favorite cities here
+    # https://open-meteo.com/en/docs
     Boston:
       Latitude: 42.3584
       Longitude: -71.0598
@@ -63,6 +66,13 @@ setup:
       - 0
       hour:
       - 0
+      - 3
+      - 6
+      - 9
+      - 12
+      - 15
+      - 18
+      - 21
       dayOfMonth:
       - '*'
       month:

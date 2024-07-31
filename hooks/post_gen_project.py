@@ -8,12 +8,10 @@
 import os
 import subprocess
 import shutil
+from pathlib import Path
 import stat
 
-import datarobot as dr
-
 from ruamel.yaml import YAML
-from ruamel.yaml.comments import CommentedMap
 
 yaml = YAML()
 
@@ -52,8 +50,9 @@ except KeyError:
     pass
 
 try:
+    import datarobot as dr
     prediction_server = dr.PredictionServer.list()[0]
-    yaml_content['datarobot']['default_prediction_server_id'] = prediction_server.id
+    yaml_content['datarobot']['prediction_server_id'] = prediction_server.id
 except:
     pass
 
@@ -62,3 +61,17 @@ with open(file_path, 'w') as file:
 
 print('YAML file updated successfully.')
 
+# Handle case when kedro new happens in a DataRobot codespace
+if "DATAROBOT_DEFAULT_USE_CASE" in os.environ:
+    import datarobot as dr
+
+    parameters_yaml = Path("conf/base/parameters.yml")
+    use_case = dr.UseCase.get(os.environ["DATAROBOT_DEFAULT_USE_CASE"])
+
+    with open(parameters_yaml, "r") as file:
+        yaml_content = yaml.load(file)
+        yaml_content["setup"]["use_case"]["name"] = use_case.name
+        yaml_content["setup"]["use_case"]["description"] = use_case.description
+
+    with open(parameters_yaml, "w") as file:
+        yaml.dump(yaml_content, file, sort_keys=False)

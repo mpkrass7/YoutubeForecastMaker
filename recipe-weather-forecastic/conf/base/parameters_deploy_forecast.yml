@@ -1,6 +1,4 @@
 deploy_forecast:
-  use_case:
-    name: ${globals:project_name} 
   dataset_name: ${globals:project_name} Time Series Data
   project:
     name: ${globals:project_name} Project 

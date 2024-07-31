@@ -97,11 +97,14 @@ def make_datarobot_deployment_predictions(
 
     # Make API request for predictions
     predictions_response = requests.post(
-        url, data=data.to_json(orient="records"), headers=headers, params=params # "Prediction Explanations aren't available because the validation partition doesn't contain the required number of rows."
+        url,
+        data=data.to_json(orient="records"),
+        headers=headers,
+        params=params,  # "Prediction Explanations aren't available because the validation partition doesn't contain the required number of rows."
     )
     # If we run into an issue, explanations may not be available.
     if predictions_response.status_code == 400:
-        print(predictions_response.text) 
+        print(predictions_response.text)
         predictions_response = requests.post(
             url, data=data.to_json(orient="records"), headers=headers, params=None
         )
@@ -114,12 +117,9 @@ def process_predictions(
     prediction_interval: str = "80",
     bound_at_zero: bool = False,
 ) -> pd.DataFrame:
-
     data = predictions["data"]
     if data[0].get("predictionExplanations") is None:
-        slim_predictions = pd.DataFrame(data)[
-            ["seriesId", "timestamp", "prediction"]
-        ]
+        slim_predictions = pd.DataFrame(data)[["seriesId", "timestamp", "prediction"]]
         intervals = pd.DataFrame(
             [i["predictionIntervals"][prediction_interval] for i in data]
         )
@@ -144,6 +144,7 @@ def process_predictions(
             clean_predictions[bounds] = clean_predictions[bounds].clip(lower=0)
 
     return clean_predictions
+
 
 def get_prompt(
     prediction_explanations_df: pd.DataFrame,

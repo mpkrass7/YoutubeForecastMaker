@@ -22,7 +22,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "use_case_id": "use_case_id",
                 "deployment_id": "deployment_id",
                 "application_id": "application_id",
-                "notebook_id": "notebook_id"
+                "notebook_id": "notebook_id",
             },
             outputs=None,
         ),
@@ -30,7 +30,13 @@ def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
         pipeline(nodes),
         namespace="delete_assets",
-        inputs={"use_case_id", "deployment_id", "application_id", "use_case_id", "notebook_id"},
+        inputs={
+            "use_case_id",
+            "deployment_id",
+            "application_id",
+            "use_case_id",
+            "notebook_id",
+        },
         parameters={
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",

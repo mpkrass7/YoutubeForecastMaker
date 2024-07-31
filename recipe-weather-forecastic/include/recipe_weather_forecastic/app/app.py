@@ -46,7 +46,6 @@ if "params" not in st.session_state:
             api_version=azure_credentials.get("api_version"),
         )
 
-
 params = st.session_state["params"]
 
 API_KEY = st.session_state["datarobot_credentials"]["api_token"]
@@ -248,51 +247,54 @@ def fpa():
                 step=10,
             )
             sidebarSubmit = st.form_submit_button(label="Run Forecast")
-            if sidebarSubmit:
-                if series is not None:
-                    # Execute the forecast
-                    with st.spinner("Processing forecast..."):
-                        scoring_data = (
-                            df.loc[df[MULTISERIES_ID_COLUMN] == series]
-                            .reset_index(drop=True)
-                            .copy()
-                        )
-                        forecast_raw, forecast = scoreForecast(
-                            scoring_data,
-                            DEPLOYMENT_ID,
-                            prediction_interval=PREDICTION_INTERVAL,
-                            bound_at_zero=LOWER_BOUND_AT_0,
-                        )
+            if sidebarSubmit: #TODO: remove graphics from button logic
+                st.session_state["series"] = series
+            if st.session_state.get("series") is not None:
+                df: pd.DataFrame = df
+                print(df.loc[df[MULTISERIES_ID_COLUMN] == series].sort_values(by=["date"], ascending=False).iloc[0])
+                # Execute the forecast
+                with st.spinner("Processing forecast..."):
+                    scoring_data = (
+                        df.loc[df[MULTISERIES_ID_COLUMN] == series]
+                        .reset_index(drop=True)
+                        .copy()
+                    )
+                    forecast_raw, forecast = scoreForecast(
+                        scoring_data,
+                        DEPLOYMENT_ID,
+                        prediction_interval=PREDICTION_INTERVAL,
+                        bound_at_zero=LOWER_BOUND_AT_0,
+                    )
 
-                    with chartContainer:
-                        createChart(
-                            scoring_data.tail(n_records_to_display),
-                            forecast,
-                            "Forecast for " + str(series),
-                            date_format=date_format,
-                        )
+                with chartContainer:
+                    createChart(
+                        scoring_data.tail(n_records_to_display),
+                        forecast,
+                        "Forecast for " + str(series),
+                        date_format=date_format,
+                    )
 
-                    with headlineContainer:
-                        with st.spinner("Generating Headline..."):
-                            st.subheader(interpretChartHeadline(forecast))
+                with headlineContainer:
+                    with st.spinner("Generating Headline..."):
+                        st.subheader(interpretChartHeadline(forecast))
 
-                    with explanationContainer:
-                        with st.spinner("Generating explanation..."):
-                            st.write("**AI Generated Analysis:**")
-                            try:
-                                explanations, explain_df = helpers.get_tldr(
-                                    forecast_raw,
-                                    TARGET,
-                                    CLIENT,
-                                    LLM_MODEL_NAME,
-                                    temperature=ANALYSIS_TEMPERATURE,
-                                )
-                            except KeyError:
-                                explanations = "No explanation generated. This may be an issue with the amount of training data provided."
-                                explain_df = None
-                            st.write(explanations)
-                        with st.expander("Raw Explanations", expanded=False):
-                            st.write(explain_df)
+                with explanationContainer:
+                    with st.spinner("Generating explanation..."):
+                        st.write("**AI Generated Analysis:**")
+                        try:
+                            explanations, explain_df = helpers.get_tldr(
+                                forecast_raw,
+                                TARGET,
+                                CLIENT,
+                                LLM_MODEL_NAME,
+                                temperature=ANALYSIS_TEMPERATURE,
+                            )
+                        except KeyError:
+                            explanations = "No explanation generated. This may be an issue with the amount of training data provided."
+                            explain_df = None
+                        st.write(explanations)
+                    with st.expander("Raw Explanations", expanded=False):
+                        st.write(explain_df)
 
 
 # Main app

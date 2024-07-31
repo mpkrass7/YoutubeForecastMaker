@@ -24,7 +24,7 @@ Weather Forecastic allows users to track and predict their favorite cities' weat
 
 4. Go into this folder, then `conf/local/credentials.yml`
    - Fill in your datarobot and OpenAI credentials
-   - Note: Don't input the credentials from your notebook.
+   - Note: Notebook environment API keys are automatically recycled. It is recommended to use a DataRobot API Token from developer tools rather than from the notebook environment.
 
 5. Navigate to `conf/base/parameters.yml`
    - Add in the cities along with the weather features you want to collect
@@ -73,6 +73,6 @@ To ensure that your assets are set up properly, we have tests set up.
 1. `pip install pytest pytest-cov`
 
 2. Ensure you're at the root of the directory where the project is being run from...
-For this project --> you should be in `.../recipe-weather-forecastic/recipe-weather-forecastic`
+For this project --> you should be in `~/.../recipe-weather-forecastic/recipe-weather-forecastic`
 
 3. run `pytest`

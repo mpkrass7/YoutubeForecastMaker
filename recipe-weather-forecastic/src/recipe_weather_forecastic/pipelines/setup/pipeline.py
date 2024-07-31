@@ -97,7 +97,6 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.api_token",
         },
         outputs={
-            # TODO: should this be passed into deploy_forecast & deploy_streamlit?
             "time_series_dataset_id",
             "use_case_id",
             "notebook_id",

@@ -258,7 +258,7 @@ def create_weather_image(temperature, hour):
     try:
         img = Image.open(base_image_path)
     except FileNotFoundError:
-        img = Image.open("weather_icons/1.jpg") #TODO: remove this once have image for each hour
+        img = Image.open(f"{hour}.jpg") #TODO: remove this once have image for each hour
     
     # Resize the image to be smaller
     img = img.resize((1000, 2000))  # Adjust size as needed

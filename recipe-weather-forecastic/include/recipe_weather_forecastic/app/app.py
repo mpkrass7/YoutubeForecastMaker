@@ -222,6 +222,7 @@ def fpa(n_records_to_display, scoring_data, forecast, date_format, forecast_raw,
             forecast,
             "Forecast for " + str(series),
             target=TARGET,
+            y_axis_name=Y_AXIS_NAME,
             datetime_partition_column=DATETIME_PARTITION_COLUMN,
             date_format=date_format,
         )

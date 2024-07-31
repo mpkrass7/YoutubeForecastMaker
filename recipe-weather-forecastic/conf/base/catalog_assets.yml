@@ -17,3 +17,7 @@ deployment_id:
 application_id:
   type: kedro_datasets.text.TextDataset
   filepath: data/outputs/streamlit_app/application_id.txt
+
+app_execution_environment_id:
+  type: kedro_datasets.text.TextDataset
+  filepath: data/outputs/streamlit_app/app_execution_environment_id.txt

@@ -161,7 +161,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         inputs={
             "project_id",
             "recommended_model_id",
-            "deployment_id",
+            "deployment_id",   
         },
-        outputs={"application_id"},
+        outputs={"application_id", "app_execution_environment_id"},
     )

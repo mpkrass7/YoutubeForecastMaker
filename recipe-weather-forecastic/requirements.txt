@@ -12,3 +12,4 @@ nbformat
 requests
 openmeteo_requests
 pytz
+pathspec

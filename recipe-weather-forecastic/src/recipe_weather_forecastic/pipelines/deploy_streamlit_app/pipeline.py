@@ -117,18 +117,27 @@ def create_pipeline(**kwargs) -> Pipeline:
             name="make_app_assets",
             func=make_app_assets,
             inputs={
-                "app_py": "app_code",
-                "helpers_py": "app_helpers",
-                "app_parameters_yml": "app_parameters",
-                "requirements": "app_requirements",
-                "dockerfile": "app_dockerfile",
-                "logo": "app_logo",
-                "style_css": "app_style",
-                "config_toml": "app_config",
-                "secrets_toml": "app_secrets",
+                "folder_path": "folder_path",
+                "app_parameters_yaml": "app_parameters"
             },
             outputs="app_assets",
         ),
+        # node(
+        #     name="make_app_assets",
+        #     func=make_app_assets,
+        #     inputs={
+        #         "app_py": "app_code",
+        #         "helpers_py": "app_helpers",
+        #         "app_parameters_yml": "app_parameters",
+        #         "requirements": "app_requirements",
+        #         "dockerfile": "app_dockerfile",
+        #         "logo": "app_logo",
+        #         "style_css": "app_style",
+        #         "config_toml": "app_config",
+        #         "secrets_toml": "app_secrets",
+        #     },
+        #     outputs="app_assets",
+        # ),
     ]
     pipeline_inst = pipeline(nodes)
     return pipeline(
@@ -152,7 +161,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         inputs={
             "project_id",
             "recommended_model_id",
-            "deployment_id",
+            "deployment_id",   
         },
-        outputs={"application_id"},
+        outputs={"application_id", "app_execution_environment_id"},
     )

@@ -99,7 +99,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "registered_model_name": "modified_registered_model_name",
                 "label": "params:deployment.label",
                 "description": "params:deployment.description",
-                "prediction_server_id": "params:credentials.datarobot.prediction_server_id",
+                "prediction_environment_id": "params:credentials.datarobot.prediction_environment",
             },
             outputs="deployment_id",
         ),
@@ -169,7 +169,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         parameters={
             "params:credentials.datarobot.endpoint",
             "params:credentials.datarobot.api_token",
-            "params:credentials.datarobot.prediction_server_id",
+            "params:credentials.datarobot.prediction_environment",
         },
         inputs={"use_case_id"},
         outputs={

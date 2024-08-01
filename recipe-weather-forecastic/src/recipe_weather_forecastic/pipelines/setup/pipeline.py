@@ -50,7 +50,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 "data_frame": "weather_df",
                 "use_cases": "use_case_id",
             },
-            outputs="time_series_dataset_id",
+            outputs="scoring_data_id",
         ),
         node(
             name="upload_notebook_to_datarobot",
@@ -97,8 +97,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             "params:credentials.datarobot.api_token",
         },
         outputs={
-            # TODO: should this be passed into deploy_forecast & deploy_streamlit?
-            "time_series_dataset_id",
+            "scoring_data_id",
             "use_case_id",
             "notebook_id",
         },

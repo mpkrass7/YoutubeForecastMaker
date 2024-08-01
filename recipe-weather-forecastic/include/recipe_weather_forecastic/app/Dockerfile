@@ -20,8 +20,11 @@ COPY helpers.py helpers.py
 COPY app_parameters.yaml app_parameters.yaml
 COPY style.css style.css
 COPY DataRobot.png DataRobot.png
+COPY datarobot_favicon.png datarobot_favicon.png
 COPY .streamlit/config.toml .streamlit/config.toml
 COPY .streamlit/secrets.toml .streamlit/secrets.toml
+COPY weather_icons/ weather_icons/
+COPY Helvetica.ttf Helvetica.ttf
 
 ARG port=8080
 ENV STREAMLIT_SERVER_PORT ${port}

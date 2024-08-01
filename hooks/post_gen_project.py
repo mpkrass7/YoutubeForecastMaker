@@ -52,7 +52,7 @@ except KeyError:
 try:
     import datarobot as dr
     prediction_server = dr.PredictionServer.list()[0]
-    yaml_content['datarobot']['prediction_server_id'] = prediction_server.id
+    yaml_content['datarobot']['prediction_environment_id'] = prediction_server.id
 except:
     pass
 

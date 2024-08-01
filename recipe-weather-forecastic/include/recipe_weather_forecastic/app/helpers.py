@@ -9,11 +9,16 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, Tuple, TYPE_CHECKING
 
+import requests
 import datarobot as dr
 import pandas as pd
-import requests
 import streamlit as st
+import plotly.graph_objects as go
+
+from PIL import Image, ImageDraw, ImageFont
 from openai import AzureOpenAI
+from plotly.subplots import make_subplots
+
 
 if TYPE_CHECKING:
     from kedro.io import DataCatalog
@@ -245,3 +250,134 @@ def get_tldr(
     )
     explain_df = pd.concat((target_df, ex_target_df)).reset_index(drop=True)
     return target_completion + "\n\n\n" + ex_target_completion, explain_df
+
+
+def create_weather_image(temperature, hour):
+    # Load base image (you'll need to create or obtain these)
+    base_image_path = f"weather_icons/{hour}.jpg"
+    try:
+        img = Image.open(base_image_path)
+    except FileNotFoundError:
+        img = Image.open(f"{hour}.jpg") #TODO: remove this once have image for each hour
+    
+    # Resize the image to be smaller
+    img = img.resize((1000, 2000))  # Adjust size as needed
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype("Helvetica.ttf", 200)  # Increased font size
+    temp_text = f"{temperature}°F"
+    
+    # Get text size
+    left, top, right, bottom = font.getbbox(temp_text)
+    text_width = right - left
+    text_height = bottom - top
+    
+    # Calculate position (this will center the text)
+    position = ((1000 - text_width) // 2, (text_height) // 2)
+    draw.text(position, temp_text, font=font, fill=(255, 255, 255))  # White text
+    return img
+
+@st.cache_data(show_spinner=False)
+def score_forecast(
+    df, deployment_id, endpoint, api_key, prediction_interval: str = "80", bound_at_zero: bool = False
+):
+    predictions = make_datarobot_deployment_predictions(
+        endpoint, api_key, df, deployment_id
+    )
+    processed_predictions = process_predictions(
+        predictions, prediction_interval=prediction_interval, bound_at_zero=bound_at_zero
+    )
+    return predictions, processed_predictions
+
+@st.cache_data(show_spinner=False)
+def create_chart(
+    history, 
+    forecast, 
+    title, 
+    target,
+    y_axis_name,
+    datetime_partition_column,
+    date_format="%m/%d/%y", 
+):
+    # Create the Chart
+    fig = make_subplots(specs=[[{"secondary_y": False}]])
+    fig.add_trace(
+        go.Scatter(
+            x=pd.to_datetime(history[datetime_partition_column], format=date_format),
+            y=history[target],
+            mode="lines",
+            name=f"{target} History",
+            line_shape="spline",
+            line=dict(color="#ff9e00", width=2),
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=forecast["timestamp"],
+            y=forecast["low"],
+            mode="lines",
+            name="Low forecast",
+            line_shape="spline",
+            line=dict(color="#335599", width=0.5, dash="dot"),
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=forecast["timestamp"],
+            y=forecast["high"],
+            mode="lines",
+            name="High forecast",
+            line_shape="spline",
+            line=dict(color="#335599", width=0.5, dash="dot"),
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=forecast["timestamp"],
+            y=forecast["prediction"],
+            mode="lines",
+            name=f"Total {target} Forecast",
+            line_shape="spline",
+            line=dict(color="#162955", width=2),
+        )
+    )
+
+    fig.add_vline(
+        x=history[datetime_partition_column].max(),
+        line_width=2,
+        line_dash="dash",
+        line_color="gray",
+    )
+
+    fig.update_xaxes(
+        color="#404040",
+        title_font_family="Gravitas One",
+        title_text=datetime_partition_column,
+        linecolor="#adadad",
+    )
+
+    fig.update_yaxes(
+        color="#404040",
+        title_font_size=16,
+        title_text=y_axis_name,
+        linecolor="#adadad",
+        gridcolor="#f2f2f2",
+    )
+
+    fig.update_layout(
+        height=600,
+        title=title,
+        title_font_size=20,
+        hovermode="x unified",
+        plot_bgcolor="#ffffff",
+        showlegend=True,
+        legend=dict(orientation="h", yanchor="top", y=-0.5),
+        margin=dict(l=50, r=50, b=20, t=50, pad=4),
+        xaxis=dict(rangeslider=dict(visible=True), type="date"),
+        uniformtext_mode="hide",
+    )
+
+    fig.update_layout(xaxis=dict(fixedrange=False), yaxis=dict(fixedrange=False))
+    fig.update_traces(connectgaps=False)
+    config = {"displayModeBar": False, "responsive": True}
+
+    st.plotly_chart(fig, config=config, use_container_width=True)

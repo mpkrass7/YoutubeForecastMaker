@@ -43,7 +43,7 @@ def dr_client(project_context):
 
 @pytest.fixture()
 def data(project_context):
-    dataset_id = project_context.catalog.load("time_series_dataset_id")
+    dataset_id = project_context.catalog.load("scoring_data_id")
     return dr.Dataset.get(dataset_id).get_as_dataframe()
 
 

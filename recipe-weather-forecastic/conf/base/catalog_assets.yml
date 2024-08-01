@@ -18,6 +18,6 @@ application_id:
   type: kedro_datasets.text.TextDataset
   filepath: data/outputs/streamlit_app/application_id.txt
 
-time_series_dataset_id:
+app_execution_environment_id:
   type: kedro_datasets.text.TextDataset
-  filepath: data/outputs/streamlit_app/time_series_dataset_id.txt
+  filepath: data/outputs/streamlit_app/app_execution_environment_id.txt

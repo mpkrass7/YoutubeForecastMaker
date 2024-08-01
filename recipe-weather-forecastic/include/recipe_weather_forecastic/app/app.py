@@ -9,11 +9,9 @@ import sys
 
 import datarobot as dr
 import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
 
 from openai import AzureOpenAI
-from plotly.subplots import make_subplots
 import yaml
 
 import helpers
@@ -45,7 +43,6 @@ if "params" not in st.session_state:
             api_key=azure_credentials.get("api_key"),
             api_version=azure_credentials.get("api_version"),
         )
-
 
 params = st.session_state["params"]
 
@@ -81,13 +78,12 @@ pd.set_option("display.max_rows", None)  # Display all rows
 pd.set_option("display.max_columns", None)  # Display all columns
 
 # Configure the page title, favicon, layout, etc
-st.set_page_config(page_title=PAGE_TITLE, layout="wide")
+st.set_page_config(page_title=PAGE_TITLE, page_icon="./datarobot_favicon.png", layout="wide")
 
 with open("./style.css") as f:
     css = f.read()
 
 st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-
 
 @st.cache_data(show_spinner=False)
 def get_dateformat(endpoint: str, token: str, deployment_id: str) -> str:
@@ -97,106 +93,6 @@ def get_dateformat(endpoint: str, token: str, deployment_id: str) -> str:
     client = dr.Client(endpoint=endpoint, token=token)
     deployment_settings = client.get(f"deployments/{deployment_id}/settings/").json()
     return deployment_settings["predictionsByForecastDate"]["datetimeFormat"]
-
-
-@st.cache_data(show_spinner=False)
-def scoreForecast(
-    df, deployment_id, prediction_interval: str = "80", bound_at_zero: bool = False
-):
-    predictions = helpers.make_datarobot_deployment_predictions(
-        ENDPOINT, API_KEY, df, deployment_id
-    )
-    processed_predictions = helpers.process_predictions(
-        predictions, prediction_interval=prediction_interval
-    )
-    return predictions, processed_predictions
-
-
-@st.cache_data(show_spinner=False)
-def createChart(history, forecast, title, date_format="%m/%d/%y"):
-    # Create the Chart
-    fig = make_subplots(specs=[[{"secondary_y": False}]])
-    fig.add_trace(
-        go.Scatter(
-            x=pd.to_datetime(history[DATETIME_PARTITION_COLUMN], format=date_format),
-            y=history[TARGET],
-            mode="lines",
-            name=f"{TARGET} History",
-            line_shape="spline",
-            line=dict(color="#ff9e00", width=2),
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=forecast["timestamp"],
-            y=forecast["low"],
-            mode="lines",
-            name="Low forecast",
-            line_shape="spline",
-            line=dict(color="#335599", width=0.5, dash="dot"),
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=forecast["timestamp"],
-            y=forecast["high"],
-            mode="lines",
-            name="High forecast",
-            line_shape="spline",
-            line=dict(color="#335599", width=0.5, dash="dot"),
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=forecast["timestamp"],
-            y=forecast["prediction"],
-            mode="lines",
-            name=f"Total {TARGET} Forecast",
-            line_shape="spline",
-            line=dict(color="#162955", width=2),
-        )
-    )
-
-    fig.add_vline(
-        x=history[DATETIME_PARTITION_COLUMN].max(),
-        line_width=2,
-        line_dash="dash",
-        line_color="gray",
-    )
-
-    fig.update_xaxes(
-        color="#404040",
-        title_font_family="Gravitas One",
-        title_text=DATETIME_PARTITION_COLUMN,
-        linecolor="#adadad",
-    )
-
-    fig.update_yaxes(
-        color="#404040",
-        title_font_size=16,
-        title_text=Y_AXIS_NAME,
-        linecolor="#adadad",
-        gridcolor="#f2f2f2",
-    )
-
-    fig.update_layout(
-        height=600,
-        title=title,
-        title_font_size=20,
-        hovermode="x unified",
-        plot_bgcolor="#ffffff",
-        showlegend=True,
-        legend=dict(orientation="h", yanchor="top", y=-0.5),
-        margin=dict(l=50, r=50, b=20, t=50, pad=4),
-        xaxis=dict(rangeslider=dict(visible=True), type="date"),
-        uniformtext_mode="hide",
-    )
-
-    fig.update_layout(xaxis=dict(fixedrange=False), yaxis=dict(fixedrange=False))
-    fig.update_traces(connectgaps=False)
-    config = {"displayModeBar": False, "responsive": True}
-
-    st.plotly_chart(fig, config=config, use_container_width=True)
 
 
 def interpretChartHeadline(forecast):
@@ -213,15 +109,8 @@ def interpretChartHeadline(forecast):
     )
     return completion.choices[0].message.content
 
-
-def fpa():
-    # Layout
+def run_app():
     titleContainer = st.container()
-    headlineContainer = st.container()
-    chartContainer = st.container()
-    # videoContainer = st.container() TODO: What could be unique to this app?
-    explanationContainer = st.container()
-    # Header
     with titleContainer:
         (
             col1,
@@ -238,62 +127,117 @@ def fpa():
     with st.sidebar:
         series_selection = df[MULTISERIES_ID_COLUMN].unique().tolist()
 
+        st.session_state["visual"] = st.radio(
+            "Select visual configuration",
+            ["Meteorologist", "Graph"]
+        )
+
         with st.form(key="sidebar_form"):
             series = st.selectbox(MULTISERIES_ID_COLUMN, options=series_selection)
-            n_records_to_display = st.number_input(
-                "Number of records to display",
-                min_value=10,
-                max_value=200,
-                value=90,
-                step=10,
-            )
+            if st.session_state["visual"] == "Graph":
+                n_records_to_display = st.number_input(
+                    "Number of records to display",
+                    min_value=10,
+                    max_value=200,
+                    value=90,
+                    step=10,
+                )
             sidebarSubmit = st.form_submit_button(label="Run Forecast")
-            if sidebarSubmit:
-                if series is not None:
-                    # Execute the forecast
-                    with st.spinner("Processing forecast..."):
-                        scoring_data = (
-                            df.loc[df[MULTISERIES_ID_COLUMN] == series]
-                            .reset_index(drop=True)
-                            .copy()
-                        )
-                        forecast_raw, forecast = scoreForecast(
-                            scoring_data,
-                            DEPLOYMENT_ID,
-                            prediction_interval=PREDICTION_INTERVAL,
-                            bound_at_zero=LOWER_BOUND_AT_0,
-                        )
 
-                    with chartContainer:
-                        createChart(
-                            scoring_data.tail(n_records_to_display),
-                            forecast,
-                            "Forecast for " + str(series),
-                            date_format=date_format,
-                        )
+    if sidebarSubmit:
+        st.session_state["series"] = series
+    if st.session_state.get("series") is not None:
+        # Execute the forecast
+        with st.spinner("Processing forecast..."):
+            scoring_data = (
+                df.loc[df[MULTISERIES_ID_COLUMN] == series]
+                .reset_index(drop=True)
+                .copy()
+            )
+            forecast_raw, forecast = helpers.score_forecast(
+                scoring_data,
+                DEPLOYMENT_ID,
+                ENDPOINT,
+                API_KEY,
+                prediction_interval=PREDICTION_INTERVAL,
+                bound_at_zero=LOWER_BOUND_AT_0,
+            )
+            try:
+                explanations, explain_df = helpers.get_tldr(
+                        forecast_raw,
+                        TARGET,
+                        CLIENT,
+                        LLM_MODEL_NAME,
+                        temperature=ANALYSIS_TEMPERATURE,
+                )
+            except KeyError:
+                explanations = "No explanation generated. This may be an issue with the amount of training data provided."
+                explain_df = None
+        
+        if st.session_state["visual"] == "Graph":
+            fpa(n_records_to_display, scoring_data, forecast, date_format, series, explanations, explain_df)
+        elif st.session_state["visual"] == "Meteorologist":
+            visual_forecast(forecast, explanations, explain_df)
 
-                    with headlineContainer:
-                        with st.spinner("Generating Headline..."):
-                            st.subheader(interpretChartHeadline(forecast))
 
-                    with explanationContainer:
-                        with st.spinner("Generating explanation..."):
-                            st.write("**AI Generated Analysis:**")
-                            try:
-                                explanations, explain_df = helpers.get_tldr(
-                                    forecast_raw,
-                                    TARGET,
-                                    CLIENT,
-                                    LLM_MODEL_NAME,
-                                    temperature=ANALYSIS_TEMPERATURE,
-                                )
-                            except KeyError:
-                                explanations = "No explanation generated. This may be an issue with the amount of training data provided."
-                                explain_df = None
-                            st.write(explanations)
-                        with st.expander("Raw Explanations", expanded=False):
-                            st.write(explain_df)
+def visual_forecast(forecast, explanations, explain_df):    
+    # Ordering matters
+    headlineContainer = st.container()
+    forecastContainer = st.container()
+    explanationContainer = st.container()
+    
+    with headlineContainer:
+        st.subheader(interpretChartHeadline(forecast), divider=True)
 
+    first_hour = pd.to_datetime(forecast["timestamp"].iloc[0]).hour
+
+    with forecastContainer: 
+        cols = st.columns(12)
+        forecast = forecast.sort_values(by='timestamp', ascending=True)
+        for i, col in enumerate(cols):
+            forecast_this_hour = forecast.iloc[i]
+            temperature = f"{forecast_this_hour['prediction']:.1f}"
+            # Create and display the image with overlaid temperature
+            weather_image = helpers.create_weather_image(temperature, ((first_hour + i) % 24))
+            with col:
+                # st.metric("Hour of day", first_hour + i)
+                st.image(weather_image, caption=f"Weather at {((first_hour + i) % 24) :02d}00", use_column_width=True)
+
+    with explanationContainer:
+        with st.spinner("Generating description..."):
+            st.write("**AI Generated Meteorologist Insights")
+            st.write(explanations)
+        with st.expander("Raw Explanations", expanded=False):
+            st.write(explain_df)
+    
+
+def fpa(n_records_to_display, scoring_data, forecast, date_format, series, explanations, explain_df):
+    # Layout
+    headlineContainer = st.container()
+    chartContainer = st.container()
+    explanationContainer = st.container()
+    
+    with chartContainer:
+        helpers.create_chart(
+            scoring_data.tail(n_records_to_display),
+            forecast,
+            "Forecast for " + str(series),
+            target=TARGET,
+            y_axis_name=Y_AXIS_NAME,
+            datetime_partition_column=DATETIME_PARTITION_COLUMN,
+            date_format=date_format,
+        )
+
+    with headlineContainer:
+        with st.spinner("Generating Headline..."):
+            st.subheader(interpretChartHeadline(forecast))
+
+    with explanationContainer:
+        with st.spinner("Generating description..."):
+            st.write("**AI Generated Meteorologist Insights")
+            st.write(explanations)
+        with st.expander("Raw Explanations", expanded=False):
+            st.write(explain_df)
 
 # Main app
 def _main():
@@ -308,8 +252,7 @@ def _main():
         hide_streamlit_style, unsafe_allow_html=True
     )  # This let's you hide the Streamlit branding
 
-    fpa()
-
+    run_app()
 
 if __name__ == "__main__":
     _main()

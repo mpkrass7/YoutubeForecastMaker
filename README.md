@@ -45,6 +45,49 @@ Weather Forecastic allows users to track and predict their favorite cities' weat
 
 8. Sit back and watch your Datarobot deploy your model, your deployment, and your custom application. 
 
+![Running App](https://s3.amazonaws.com/datarobot_public/drx/recipe_gifs/forecastic-weather.gif)
+
+## <a name="gh-auth"></a> Authenticating with GitHub
+How to install `gh` [GitHub CLI][GitHub CLI-link]
+
+[GitHub CLI-link]: https://github.com/cli/cli
+
+Run `gh auth login` in the terminal and answer the following questions with:
+- `? What account do you want to log into?` **GitHub.com**
+- `? What is your preferred protocol for Git operations on this host?` **HTTPS**
+- `? Authenticate Git with your GitHub credentials?` **Yes**
+- `? How would you like to authenticate GitHub CLI?` **Login with a web browser**
+
+Copy the code in: `! First copy your one-time code:` **XXXX-XXXX**
+
+Open a web browser at https://github.com/login/device and enter the above code manually.
+
+You should see in the terminal:
+- `✓ Authentication complete.`
+- `✓ Logged in as YOUR_USERNAME`
+
+More details on GitHub authentication [here][gh-docs].
+
+[gh-docs]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github#https
+
+## Making changes to the pipeline
+The following files govern pipeline execution. In general, you will not need to modify
+any other boilerplate files as you customize the pipeline.:
+
+- `conf/base/parameters.yml`: pipeline configuration options and hyperparameters
+- `conf/local/credentials.yml`: API tokens and other secrets
+- `conf/base/catalog.yml`: file storage locations that can be used as node inputs or outputs,
+  including locations of supporting assets to build DR custom models, execution environments
+- `src/your_project_name/pipelines/*/nodes.py`: function definitions for the pipeline nodes
+- `src/your_project_name/pipelines/*/pipeline.py`: node names, inputs and outputs
+- `src/datarobotx/idp`: directory contains function definitions for for reusable idempotent DR nodes
+- `include/your_project_name`: directory contains raw assets and templates used by the pipeline
+
+For a deeper orientation to kedro principles and project structure visit the [Kedro][kedro-docs]
+documentation.
+
+[kedro-docs]: https://docs.kedro.org/en/stable/
+
 ## For contributors
 
 1. Install datarobotx-idp locally
@@ -70,9 +113,6 @@ Weather Forecastic allows users to track and predict their favorite cities' weat
 
 ### Running Tests
 To ensure that your assets are set up properly, we have tests set up.
-1. `pip install pytest pytest-cov`
+1. `pip install pytest pytest-cov datarobot-predict`
 
-2. Ensure you're at the root of the directory where the project is being run from...
-For this project --> you should be in `~/directories_above_cloned_repo/recipe-weather-forecastic/recipe-weather-forecastic`
-
-3. run `pytest`
+2. navigate to root of project directory and run `pytest` from the terminal

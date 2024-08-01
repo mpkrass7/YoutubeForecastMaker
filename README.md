@@ -73,6 +73,6 @@ To ensure that your assets are set up properly, we have tests set up.
 1. `pip install pytest pytest-cov`
 
 2. Ensure you're at the root of the directory where the project is being run from...
-For this project --> you should be in `~/.../recipe-weather-forecastic/recipe-weather-forecastic`
+For this project --> you should be in `~/directories_above_cloned_repo/recipe-weather-forecastic/recipe-weather-forecastic`
 
 3. run `pytest`

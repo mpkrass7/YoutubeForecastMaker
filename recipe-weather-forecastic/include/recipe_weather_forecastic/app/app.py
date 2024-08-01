@@ -162,17 +162,29 @@ def run_app():
                 prediction_interval=PREDICTION_INTERVAL,
                 bound_at_zero=LOWER_BOUND_AT_0,
             )
+            try:
+                explanations, explain_df = helpers.get_tldr(
+                        forecast_raw,
+                        TARGET,
+                        CLIENT,
+                        LLM_MODEL_NAME,
+                        temperature=ANALYSIS_TEMPERATURE,
+                )
+            except KeyError:
+                explanations = "No explanation generated. This may be an issue with the amount of training data provided."
+                explain_df = None
+        
         if visual == "Graph":
-            fpa(n_records_to_display, scoring_data, forecast, date_format, forecast_raw, series)
-        elif visual == "Meterologist":
-            visual_forecast(forecast, forecast_raw)
+            fpa(n_records_to_display, scoring_data, forecast, date_format, series, explanations, explain_df)
+        elif visual == "Meteorologist":
+            visual_forecast(forecast, explanations, explain_df)
 
 
-def visual_forecast(forecast, forecast_raw):    
+def visual_forecast(forecast, explanations, explain_df):    
     # Ordering matters
     headlineContainer = st.container()
     forecastContainer = st.container()
-    descriptionContainer = st.container()
+    explanationContainer = st.container()
     
     with headlineContainer:
         st.subheader(interpretChartHeadline(forecast), divider=True)
@@ -191,26 +203,15 @@ def visual_forecast(forecast, forecast_raw):
                 # st.metric("Hour of day", first_hour + i)
                 st.image(weather_image, caption=f"Weather at {((first_hour + i) % 24) :02d}00", use_column_width=True)
 
-    with descriptionContainer:
+    with explanationContainer:
         with st.spinner("Generating description..."):
-            try:
-                st.write("**AI Generated Meteorologist Insights")
-                explanations, explain_df = helpers.get_tldr(
-                    forecast_raw,
-                    TARGET,
-                    CLIENT,
-                    LLM_MODEL_NAME,
-                    temperature=ANALYSIS_TEMPERATURE,
-                )
-            except KeyError:
-                explanations = "No explanation generated. This may be an issue with the amount of training data provided."
-                explain_df = None
+            st.write("**AI Generated Meteorologist Insights")
             st.write(explanations)
         with st.expander("Raw Explanations", expanded=False):
             st.write(explain_df)
     
 
-def fpa(n_records_to_display, scoring_data, forecast, date_format, forecast_raw, series):
+def fpa(n_records_to_display, scoring_data, forecast, date_format, series, explanations, explain_df):
     # Layout
     headlineContainer = st.container()
     chartContainer = st.container()
@@ -232,19 +233,8 @@ def fpa(n_records_to_display, scoring_data, forecast, date_format, forecast_raw,
             st.subheader(interpretChartHeadline(forecast))
 
     with explanationContainer:
-        with st.spinner("Generating explanation..."):
-            st.write("**AI Generated Analysis:**")
-            try:
-                explanations, explain_df = helpers.get_tldr(
-                    forecast_raw,
-                    TARGET,
-                    CLIENT,
-                    LLM_MODEL_NAME,
-                    temperature=ANALYSIS_TEMPERATURE,
-                )
-            except KeyError:
-                explanations = "No explanation generated. This may be an issue with the amount of training data provided."
-                explain_df = None
+        with st.spinner("Generating description..."):
+            st.write("**AI Generated Meteorologist Insights")
             st.write(explanations)
         with st.expander("Raw Explanations", expanded=False):
             st.write(explain_df)

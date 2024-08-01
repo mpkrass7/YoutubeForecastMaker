@@ -258,45 +258,56 @@ def create_weather_image(temperature, hour):
     try:
         img = Image.open(base_image_path)
     except FileNotFoundError:
-        img = Image.open(f"{hour}.jpg") #TODO: remove this once have image for each hour
-    
+        img = Image.open(
+            f"{hour}.jpg"
+        )  # TODO: remove this once have image for each hour
+
     # Resize the image to be smaller
     img = img.resize((1000, 2000))  # Adjust size as needed
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype("Helvetica.ttf", 200)  # Increased font size
     temp_text = f"{temperature}°F"
-    
+
     # Get text size
     left, top, right, bottom = font.getbbox(temp_text)
     text_width = right - left
     text_height = bottom - top
-    
+
     # Calculate position (this will center the text)
     position = ((1000 - text_width) // 2, (text_height) // 2)
     draw.text(position, temp_text, font=font, fill=(255, 255, 255))  # White text
     return img
 
+
 @st.cache_data(show_spinner=False)
 def score_forecast(
-    df, deployment_id, endpoint, api_key, prediction_interval: str = "80", bound_at_zero: bool = False
+    df,
+    deployment_id,
+    endpoint,
+    api_key,
+    prediction_interval: str = "80",
+    bound_at_zero: bool = False,
 ):
     predictions = make_datarobot_deployment_predictions(
         endpoint, api_key, df, deployment_id
     )
     processed_predictions = process_predictions(
-        predictions, prediction_interval=prediction_interval, bound_at_zero=bound_at_zero
+        predictions,
+        prediction_interval=prediction_interval,
+        bound_at_zero=bound_at_zero,
     )
     return predictions, processed_predictions
 
+
 @st.cache_data(show_spinner=False)
 def create_chart(
-    history, 
-    forecast, 
-    title, 
+    history,
+    forecast,
+    title,
     target,
     y_axis_name,
     datetime_partition_column,
-    date_format="%m/%d/%y", 
+    date_format="%m/%d/%y",
 ):
     # Create the Chart
     fig = make_subplots(specs=[[{"secondary_y": False}]])

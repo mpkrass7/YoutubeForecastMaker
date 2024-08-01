@@ -232,7 +232,6 @@ def instantiate_env(token: str, notebook_id: str, **kwargs: Any) -> None:
     """Instantiates the server-side notebook with environment variables passed into kwargs"""
     import requests
     import json
-    import logging
 
     headers = {
         "Authorization": f"Token {token}",
@@ -263,6 +262,7 @@ def instantiate_env(token: str, notebook_id: str, **kwargs: Any) -> None:
         headers=headers,
     )
     assert response.status_code == 201
+
 
 def get_historical_city_data(
     locations: List[Dict[str, float]], parameters: Dict[str, Any]
@@ -339,7 +339,7 @@ def get_historical_city_data(
         logger.info(f"Current time: {current_time}")
 
         new_data = new_data[new_data["date"] <= current_time]
-        new_data = new_data.sort_values(by='date', ascending=True)
+        new_data = new_data.sort_values(by="date", ascending=True)
 
         logger.info(f"Most recent time in dataframe={new_data['date'].iloc[-1]}")
 

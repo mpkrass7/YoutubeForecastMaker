@@ -162,7 +162,8 @@ logs/
 datarobotx/
 
 # data
-recipe-template/data
-recipe-template/conf/base/globals.yml
-recipe-template/conf/local/credentials.yml
-recipe-template/stats.json
+recipe-weather-forecastic/data
+recipe-weather-forecastic/conf/base/globals.yml
+recipe-weather-forecastic/conf/local/credentials.yml
+recipe-weather-forecastic/stats.json
+recipe-weather-forecastic/.viz

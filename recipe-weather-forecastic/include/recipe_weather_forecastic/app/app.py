@@ -78,12 +78,15 @@ pd.set_option("display.max_rows", None)  # Display all rows
 pd.set_option("display.max_columns", None)  # Display all columns
 
 # Configure the page title, favicon, layout, etc
-st.set_page_config(page_title=PAGE_TITLE, page_icon="./datarobot_favicon.png", layout="wide")
+st.set_page_config(
+    page_title=PAGE_TITLE, page_icon="./datarobot_favicon.png", layout="wide"
+)
 
 with open("./style.css") as f:
     css = f.read()
 
 st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+
 
 @st.cache_data(show_spinner=False)
 def get_dateformat(endpoint: str, token: str, deployment_id: str) -> str:
@@ -109,6 +112,7 @@ def interpretChartHeadline(forecast):
     )
     return completion.choices[0].message.content
 
+
 def run_app():
     titleContainer = st.container()
     with titleContainer:
@@ -128,8 +132,7 @@ def run_app():
         series_selection = df[MULTISERIES_ID_COLUMN].unique().tolist()
 
         st.session_state["visual"] = st.radio(
-            "Select visual configuration",
-            ["Meteorologist", "Graph"]
+            "Select visual configuration", ["Meteorologist", "Graph"]
         )
 
         with st.form(key="sidebar_form"):
@@ -164,44 +167,58 @@ def run_app():
             )
             try:
                 explanations, explain_df = helpers.get_tldr(
-                        forecast_raw,
-                        TARGET,
-                        CLIENT,
-                        LLM_MODEL_NAME,
-                        temperature=ANALYSIS_TEMPERATURE,
+                    forecast_raw,
+                    TARGET,
+                    CLIENT,
+                    LLM_MODEL_NAME,
+                    temperature=ANALYSIS_TEMPERATURE,
                 )
             except KeyError:
                 explanations = "No explanation generated. This may be an issue with the amount of training data provided."
                 explain_df = None
-        
+
         if st.session_state["visual"] == "Graph":
-            fpa(n_records_to_display, scoring_data, forecast, date_format, series, explanations, explain_df)
+            fpa(
+                n_records_to_display,
+                scoring_data,
+                forecast,
+                date_format,
+                series,
+                explanations,
+                explain_df,
+            )
         elif st.session_state["visual"] == "Meteorologist":
             visual_forecast(forecast, explanations, explain_df)
 
 
-def visual_forecast(forecast, explanations, explain_df):    
+def visual_forecast(forecast, explanations, explain_df):
     # Ordering matters
     headlineContainer = st.container()
     forecastContainer = st.container()
     explanationContainer = st.container()
-    
+
     with headlineContainer:
         st.subheader(interpretChartHeadline(forecast), divider=True)
 
     first_hour = pd.to_datetime(forecast["timestamp"].iloc[0]).hour
 
-    with forecastContainer: 
+    with forecastContainer:
         cols = st.columns(12)
-        forecast = forecast.sort_values(by='timestamp', ascending=True)
+        forecast = forecast.sort_values(by="timestamp", ascending=True)
         for i, col in enumerate(cols):
             forecast_this_hour = forecast.iloc[i]
             temperature = f"{forecast_this_hour['prediction']:.1f}"
             # Create and display the image with overlaid temperature
-            weather_image = helpers.create_weather_image(temperature, ((first_hour + i) % 24))
+            weather_image = helpers.create_weather_image(
+                temperature, ((first_hour + i) % 24)
+            )
             with col:
                 # st.metric("Hour of day", first_hour + i)
-                st.image(weather_image, caption=f"Weather at {((first_hour + i) % 24) :02d}00", use_column_width=True)
+                st.image(
+                    weather_image,
+                    caption=f"Weather at {((first_hour + i) % 24) :02d}00",
+                    use_column_width=True,
+                )
 
     with explanationContainer:
         with st.spinner("Generating description..."):
@@ -209,14 +226,22 @@ def visual_forecast(forecast, explanations, explain_df):
             st.write(explanations)
         with st.expander("Raw Explanations", expanded=False):
             st.write(explain_df)
-    
 
-def fpa(n_records_to_display, scoring_data, forecast, date_format, series, explanations, explain_df):
+
+def fpa(
+    n_records_to_display,
+    scoring_data,
+    forecast,
+    date_format,
+    series,
+    explanations,
+    explain_df,
+):
     # Layout
     headlineContainer = st.container()
     chartContainer = st.container()
     explanationContainer = st.container()
-    
+
     with chartContainer:
         helpers.create_chart(
             scoring_data.tail(n_records_to_display),
@@ -239,6 +264,7 @@ def fpa(n_records_to_display, scoring_data, forecast, date_format, series, expla
         with st.expander("Raw Explanations", expanded=False):
             st.write(explain_df)
 
+
 # Main app
 def _main():
     hide_streamlit_style = """
@@ -253,6 +279,7 @@ def _main():
     )  # This let's you hide the Streamlit branding
 
     run_app()
+
 
 if __name__ == "__main__":
     _main()

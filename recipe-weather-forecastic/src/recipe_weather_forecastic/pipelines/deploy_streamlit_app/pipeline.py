@@ -118,7 +118,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             func=make_app_assets,
             inputs={
                 "folder_path": "folder_path",
-                "app_parameters_yaml": "app_parameters"
+                "app_parameters_yaml": "app_parameters",
             },
             outputs="app_assets",
         ),
@@ -161,7 +161,7 @@ def create_pipeline(**kwargs) -> Pipeline:
         inputs={
             "project_id",
             "recommended_model_id",
-            "deployment_id",   
+            "deployment_id",
         },
         outputs={"application_id", "app_execution_environment_id"},
     )

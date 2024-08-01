@@ -45,7 +45,11 @@ Weather Forecastic allows users to track and predict their favorite cities' weat
 
 8. Sit back and watch your Datarobot deploy your model, your deployment, and your custom application. 
 
+
 ![Running App](https://s3.amazonaws.com/datarobot_public/drx/recipe_gifs/forecastic-weather.gif)
+
+![Kedro Viz](https://s3.amazonaws.com/datarobot_public/drx/drx_gifs/kedro-viz.gif)
+
 
 ## <a name="gh-auth"></a> Authenticating with GitHub
 How to install `gh` [GitHub CLI][GitHub CLI-link]

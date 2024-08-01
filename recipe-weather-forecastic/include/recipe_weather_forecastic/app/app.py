@@ -127,14 +127,14 @@ def run_app():
     with st.sidebar:
         series_selection = df[MULTISERIES_ID_COLUMN].unique().tolist()
 
-        visual = st.radio(
+        st.session_state["visual"] = st.radio(
             "Select visual configuration",
-            ["Meterologist", "Graph"]
+            ["Meteorologist", "Graph"]
         )
 
         with st.form(key="sidebar_form"):
             series = st.selectbox(MULTISERIES_ID_COLUMN, options=series_selection)
-            if visual == "Graph":
+            if st.session_state["visual"] == "Graph":
                 n_records_to_display = st.number_input(
                     "Number of records to display",
                     min_value=10,
@@ -174,9 +174,9 @@ def run_app():
                 explanations = "No explanation generated. This may be an issue with the amount of training data provided."
                 explain_df = None
         
-        if visual == "Graph":
+        if st.session_state["visual"] == "Graph":
             fpa(n_records_to_display, scoring_data, forecast, date_format, series, explanations, explain_df)
-        elif visual == "Meteorologist":
+        elif st.session_state["visual"] == "Meteorologist":
             visual_forecast(forecast, explanations, explain_df)
 
 

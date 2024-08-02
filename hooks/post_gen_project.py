@@ -65,7 +65,7 @@ print('YAML file updated successfully.')
 if "DATAROBOT_DEFAULT_USE_CASE" in os.environ:
     import datarobot as dr
 
-    parameters_yaml = Path("conf/base/parameters.yml")
+    parameters_yaml = Path("conf/base/parameters_setup.yml")
     use_case = dr.UseCase.get(os.environ["DATAROBOT_DEFAULT_USE_CASE"])
 
     with open(parameters_yaml, "r") as file:

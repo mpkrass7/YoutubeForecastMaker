@@ -74,4 +74,4 @@ if "DATAROBOT_DEFAULT_USE_CASE" in os.environ:
         yaml_content["setup"]["use_case"]["description"] = use_case.description
 
     with open(parameters_yaml, "w") as file:
-        yaml.dump(yaml_content, file, sort_keys=False)
+        yaml.dump(yaml_content, file)

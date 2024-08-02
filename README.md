@@ -16,10 +16,10 @@ Weather Forecastic allows users to track and predict their favorite cities' weat
    pip install kedro
    ```
    ```bash
-   kedro new -n $PROJECT_NAME$ --starter=https://github.com/j-beastman/WeatherForecastic.git --checkout master
+   kedro new -n YOUR_PROJECT_NAME --starter=https://github.com/j-beastman/WeatherForecastic.git --checkout master
    ```
    ```bash
-   pip install -r $PROJECT_NAME$/requirements.txt
+   pip install -r YOUR_PROJECT_NAME/requirements.txt
    ```
 
 4. Go into this folder, then `conf/local/credentials.yml`

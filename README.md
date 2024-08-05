@@ -16,13 +16,13 @@ Weather Forecastic allows users to track and predict their favorite cities' weat
    pip install kedro
    ```
    ```bash
-   kedro new -n YOUR_PROJECT_NAME --starter=https://github.com/j-beastman/WeatherForecastic.git --checkout master
+   kedro new -n --starter=https://github.com/j-beastman/WeatherForecastic.git --checkout master
    ```
    ```bash
-   pip install -r YOUR_PROJECT_NAME/requirements.txt
+   pip install -r your_project_name/requirements.txt
    ```
 
-4. Go into this folder, then `conf/local/credentials.yml`
+4. `cd` into your project folder, then open `conf/local/credentials.yml`
    - Fill in your datarobot and OpenAI credentials
    - Note: Notebook environment API keys are automatically recycled. It is recommended to use a DataRobot API Token from developer tools rather than from the notebook environment.
 

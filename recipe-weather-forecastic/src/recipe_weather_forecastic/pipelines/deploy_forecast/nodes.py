@@ -119,7 +119,9 @@ def ensure_deployment_settings(
     deployment = dr.Deployment.get(deployment_id)
 
     deployment.update_predictions_data_collection_settings(enabled=True)
-    deployment.update_drift_tracking_settings(target_drift_enabled=True)
+    deployment.update_drift_tracking_settings(
+        target_drift_enabled=True, feature_drift_enabled=True
+    )
 
     deployment.update_prediction_intervals_settings(percentiles=[prediction_interval])
 
